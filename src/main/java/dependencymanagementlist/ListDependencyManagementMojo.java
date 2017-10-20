@@ -34,6 +34,9 @@ public class ListDependencyManagementMojo extends AbstractMojo {
 	@Parameter(defaultValue = "${session}", readonly = true, required = true)
 	private MavenSession session;
 
+	@Parameter(defaultValue = "false", readonly = true, required = false)
+	private boolean excludeTransitive;
+
 	@Component
 	private ArtifactHandler artifactHandler;
 
@@ -50,11 +53,13 @@ public class ListDependencyManagementMojo extends AbstractMojo {
 	private void printDependencyTree(Artifact artifact, String level, Set<Artifact> visitedArtifacts)
 			throws MojoExecutionException {
 		getLog().info(level + "+ " + artifact);
-		for (Dependency transitive : getTransitiveDependencies(artifact)) {
-			Artifact transitiveArtifact = toArtifact(transitive);
-			if (!visitedArtifacts.contains(transitiveArtifact)) {
-				visitedArtifacts.add(transitiveArtifact);
-				printDependencyTree(transitiveArtifact, level + "  ", visitedArtifacts);
+		if (excludeTransitive) {
+			for (Dependency transitive : getTransitiveDependencies(artifact)) {
+				Artifact transitiveArtifact = toArtifact(transitive);
+				if (!visitedArtifacts.contains(transitiveArtifact)) {
+					visitedArtifacts.add(transitiveArtifact);
+					printDependencyTree(transitiveArtifact, level + "  ", visitedArtifacts);
+				}
 			}
 		}
 	}
