@@ -25,6 +25,10 @@ import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.ProjectBuildingRequest;
 import org.eclipse.aether.transfer.ArtifactNotFoundException;
 
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
+import com.google.common.collect.Sets.SetView;
+
 @Mojo(name = "list", requiresDependencyResolution = ResolutionScope.TEST)
 public class ListDependencyManagementMojo extends AbstractMojo {
 
@@ -44,21 +48,54 @@ public class ListDependencyManagementMojo extends AbstractMojo {
 	private ProjectBuilder projectBuilder;
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		Set<Artifact> visitedArtifacts = new HashSet<Artifact>();
+		getLog().debug("Start dependency analysis");
+		Set<Artifact> artifactsInDependencyManagement = new HashSet<Artifact>();
 		for (Dependency dependency : project.getDependencyManagement().getDependencies()) {
-			printDependencyTree(toArtifact(dependency), "", visitedArtifacts);
+			collectDependencyManagement(toArtifact(dependency), artifactsInDependencyManagement);
+		}
+		getLog().info("Artifacts contained in dependency management");
+		for (Artifact artifact : Ordering.natural().nullsFirst().immutableSortedCopy(artifactsInDependencyManagement)) {
+			getLog().info("+ " + artifact);
+		}
+
+		Set<Artifact> usedDependencies = new HashSet<Artifact>();
+		for (MavenProject project : session.getAllProjects()) {
+			collectDependencies(project, usedDependencies);
+		}
+
+		SetView<Artifact> artifactsUsedButNotInDependencyManagement = Sets.difference(usedDependencies,
+				artifactsInDependencyManagement);
+		if (artifactsUsedButNotInDependencyManagement.isEmpty()) {
+			getLog().info("Good for you, not artifacts detected, which are not part of the dependencyManagement");
+		} else {
+			getLog().info("Artifacts referenced, but not contained in dependency management");
+			for (Artifact artifact : Ordering.natural().nullsFirst().immutableSortedCopy(artifactsUsedButNotInDependencyManagement)) {
+				getLog().warn("+ " + artifact);
+			}
+		}
+		getLog().debug("End dependency analysis");
+	}
+
+	private void collectDependencies(MavenProject theProject, Set<Artifact> theCollectedArtifacts) {
+		for (Dependency dependency : theProject.getDependencies()) {
+			Artifact artifact = toArtifact(dependency);
+			if (theCollectedArtifacts.contains(artifact)) {
+				// already seen that, skip rest
+				continue;
+			}
+			theCollectedArtifacts.add(artifact);
 		}
 	}
 
-	private void printDependencyTree(Artifact artifact, String level, Set<Artifact> visitedArtifacts)
+	private void collectDependencyManagement(Artifact artifact, Set<Artifact> visitedArtifacts)
 			throws MojoExecutionException {
-		getLog().info(level + "+ " + artifact);
+		visitedArtifacts.add(artifact);
 		if (excludeTransitive) {
 			for (Dependency transitive : getTransitiveDependencies(artifact)) {
 				Artifact transitiveArtifact = toArtifact(transitive);
 				if (!visitedArtifacts.contains(transitiveArtifact)) {
 					visitedArtifacts.add(transitiveArtifact);
-					printDependencyTree(transitiveArtifact, level + "  ", visitedArtifacts);
+					collectDependencyManagement(transitiveArtifact, visitedArtifacts);
 				}
 			}
 		}
