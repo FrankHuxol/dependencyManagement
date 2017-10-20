@@ -1,8 +1,8 @@
 package dependencymanagementlist;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -57,12 +57,10 @@ public class EnforceDependencyManagementMojo extends AbstractMojo {
 	private void enforceOnlyArtifactsInDependencyManagementAreUsed(Set<Artifact> theAllowedArtifacts) {
 		boolean allGood = true;
 		for (MavenProject currentProject : session.getAllProjects()) {
-			Set<Artifact> usedArtifacts = currentProject.getDependencies().stream().map(this::toArtifact)
-					.collect(Collectors.toSet());
+			Set<Artifact> usedArtifacts = getArtifactsOfProject(currentProject);
 			SetView<Artifact> artifactsUsedButNotInDependencyManagement = Sets.difference(usedArtifacts,
 					theAllowedArtifacts);
 			if (!artifactsUsedButNotInDependencyManagement.isEmpty()) {
-				getLog().info("Artifacts referenced, but not contained in dependency management");
 				for (Artifact artifact : Ordering.natural().nullsFirst()
 						.immutableSortedCopy(artifactsUsedButNotInDependencyManagement)) {
 					getLog().warn("Project " + currentProject.getName()
@@ -74,6 +72,21 @@ public class EnforceDependencyManagementMojo extends AbstractMojo {
 		if (allGood) {
 			getLog().info("Good for you. All projects use artifacts from the dependency management");
 		}
+	}
+
+	/**
+	 * Retrieves the artifacts used by the provided project.
+	 * 
+	 * @param theProject
+	 * @return
+	 */
+	private Set<Artifact> getArtifactsOfProject(MavenProject theProject) {
+		Set<Artifact> usedArtifacts = Sets.newHashSet();
+		List<Dependency> dependencies = theProject.getDependencies();
+		for (Dependency dependency : dependencies) {
+			usedArtifacts.add(toArtifact(dependency));
+		}
+		return usedArtifacts;
 	}
 
 	/**
