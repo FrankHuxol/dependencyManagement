@@ -1,5 +1,25 @@
-# dependencyManagementListing
-A maven module to list all dependencies in the dependencyManagement section
+# dependencyManagement
+A maven module scanning the dependency management and enforcing, that no dependencies other than those are used.
+
+# Usage
+
+Add to pom:
+```
+	<build>
+		<plugins>
+			<plugin>
+			    <groupId>de.ebp</groupId>
+			    <artifactId>dependencymanagement-maven-plugin</artifactId>
+			    <version>1.0.0/version>
+			</plugin>
+		</plugins>
+	</build>
+```
+
+Run goal
+```
+mvn dependencymanagement:enforce
+```
 
 
 # Authors
