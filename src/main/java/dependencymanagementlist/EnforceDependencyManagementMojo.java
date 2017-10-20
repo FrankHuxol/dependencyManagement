@@ -30,7 +30,7 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
 
 @Mojo(name = "analyze", requiresDependencyResolution = ResolutionScope.TEST)
-public class ListDependencyManagementMojo extends AbstractMojo {
+public class EnforceDependencyManagementMojo extends AbstractMojo {
 
 	@Parameter(defaultValue = "${project}", readonly = true, required = true)
 	private MavenProject project;
