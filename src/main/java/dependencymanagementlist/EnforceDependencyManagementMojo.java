@@ -2,7 +2,9 @@ package dependencymanagementlist;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -19,6 +21,9 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectBuilder;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
@@ -55,7 +60,13 @@ public class EnforceDependencyManagementMojo extends AbstractMojo {
 	 * @param theAllowedArtifacts
 	 */
 	private void enforceOnlyArtifactsInDependencyManagementAreUsed(Set<Artifact> theAllowedArtifacts) {
-		boolean allGood = true;
+		LoadingCache<Artifact, Set<MavenProject>> offenders = CacheBuilder.newBuilder()
+				.build(new CacheLoader<Artifact, Set<MavenProject>>() {
+					@Override
+					public Set<MavenProject> load(Artifact key) throws Exception {
+						return Sets.newHashSet();
+					}
+				});
 		for (MavenProject currentProject : session.getAllProjects()) {
 			Set<Artifact> usedArtifacts = getArtifactsOfProject(currentProject);
 			SetView<Artifact> artifactsUsedButNotInDependencyManagement = Sets.difference(usedArtifacts,
@@ -63,14 +74,18 @@ public class EnforceDependencyManagementMojo extends AbstractMojo {
 			if (!artifactsUsedButNotInDependencyManagement.isEmpty()) {
 				for (Artifact artifact : Ordering.natural().nullsFirst()
 						.immutableSortedCopy(artifactsUsedButNotInDependencyManagement)) {
-					getLog().warn("Project " + currentProject.getName()
-							+ " uses artifact not in dependency management: " + artifact);
-					allGood = false;
+					offenders.getUnchecked(artifact).add(currentProject);
 				}
 			}
 		}
-		if (allGood) {
+		ConcurrentMap<Artifact, Set<MavenProject>> offendersAsMap = offenders.asMap();
+		if (offendersAsMap.isEmpty()) {
 			getLog().info("Good for you. All projects use artifacts from the dependency management");
+		} else {
+			for (Entry<Artifact, Set<MavenProject>> entry : offendersAsMap.entrySet()) {
+				getLog().warn("Artifact not in dependency management used: " + entry.getKey() + " (used by "
+						+ entry.getValue() + ")");
+			}
 		}
 	}
 
