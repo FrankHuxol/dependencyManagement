@@ -25,7 +25,7 @@ import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.ProjectBuildingRequest;
 import org.eclipse.aether.transfer.ArtifactNotFoundException;
 
-@Mojo(name = "foo", requiresDependencyResolution = ResolutionScope.TEST)
+@Mojo(name = "list", requiresDependencyResolution = ResolutionScope.TEST)
 public class ListDependencyManagementMojo extends AbstractMojo {
 
 	@Parameter(defaultValue = "${project}", readonly = true, required = true)
