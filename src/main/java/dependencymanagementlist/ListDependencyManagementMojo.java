@@ -29,7 +29,7 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
 
-@Mojo(name = "list", requiresDependencyResolution = ResolutionScope.TEST)
+@Mojo(name = "analyze", requiresDependencyResolution = ResolutionScope.TEST)
 public class ListDependencyManagementMojo extends AbstractMojo {
 
 	@Parameter(defaultValue = "${project}", readonly = true, required = true)
