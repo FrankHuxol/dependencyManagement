@@ -4,7 +4,6 @@
 	<groupId>de.ebp</groupId>
 	<artifactId>tree-mojo-test</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>maven-plugin</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -17,6 +16,4 @@
 			</plugin>
 		</plugins>
 	</build>
-	<dependencies>
-	</dependencies>
 </project>
