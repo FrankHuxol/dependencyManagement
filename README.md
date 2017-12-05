@@ -25,7 +25,6 @@ Ensures, that the project is only using dependencies defined in the dependency m
 [INFO] +- org.apache.maven:maven-compat:jar:3.5.2:test
 [INFO] |  +- org.codehaus.plexus:plexus-interpolation:jar:1.24:compile
 [INFO] |  \- org.apache.maven.wagon:wagon-provider-api:jar:2.12:test
-...])
 ```
 
 # Getting started
