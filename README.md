@@ -1,9 +1,12 @@
 # dependencyManagement
 A maven plugin handling operations on the dependencymanagement section.
 
-## Available goals
+## Build status
+[![CircleCI](https://circleci.com/gh/FrankHuxol/dependencyManagement.svg?style=svg)](https://circleci.com/gh/FrankHuxol/dependencyManagement) powered by CircleCI
 
-### enforce
+# Available goals
+
+## enforce
 Ensures, that the project is only using dependencies defined in the dependency management section.
 ```
 [DEBUG] Artifacts contained in dependency management
@@ -15,7 +18,7 @@ Ensures, that the project is only using dependencies defined in the dependency m
 [WARNING] Artifact not in dependency management used: org.orbisgis:poly2tri-core:jar:0.1.2:compile (used by [MavenProject: ..., MavenProject: ...])
 ```
 
-### tree
+## tree
 ```
 [INFO] Dependency tree of dependencymanagement configuration:
 [INFO] de.ebp:dependencymanagement-maven-plugin:maven-plugin:2.0.0-SNAPSHOT
@@ -27,10 +30,7 @@ Ensures, that the project is only using dependencies defined in the dependency m
 [INFO] Artifact not in dependency management used: org.orbisgis:poly2tri-core:jar:0.1.2:compile (used by [MavenProject: ..., MavenProject: ...])
 ```
 
-## Build status
-[![CircleCI](https://circleci.com/gh/FrankHuxol/dependencyManagement.svg?style=svg)](https://circleci.com/gh/FrankHuxol/dependencyManagement)
-
-## Getting started
+# Getting started
 
 Add to pom:
 ```
@@ -53,6 +53,6 @@ mvn dependencymanagement:tree
 
 
 
-## Authors
+# Authors
 * Frank Huxol (https://github.com/FrankHuxol): Created git hub project - https://github.com/FrankHuxol/dependencyManagement
 * Tunaki (https://stackoverflow.com/users/1743880/tunaki): Shared his solution - https://stackoverflow.com/questions/35630476/view-dependency-tree-of-dependencymanagement
