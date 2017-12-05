@@ -110,14 +110,19 @@ public class TreeMojoTest {
 	};
 
 	@Test
-	public void testSomething() throws Exception {
+	public void testTree() throws Exception {
 		testedTreeMojo.execute();
 
 		InOrder inOrder = inOrder(mockedLog);
-		
+
 		inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
 		inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test:pom:0.0.1-SNAPSHOT");
 		inOrder.verify(mockedLog).info("+- com.google.guava:guava:jar:20.0:compile");
+		inOrder.verify(mockedLog).info("+- org.slf4j:slf4j-api:jar:1.7.21:compile");
+		inOrder.verify(mockedLog).info("\\- junit:junit:jar:4.12:test");
+
+		inOrder.verifyNoMoreInteractions();
+
 	}
 
 }
