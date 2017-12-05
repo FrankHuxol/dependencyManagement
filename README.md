@@ -22,12 +22,10 @@ Ensures, that the project is only using dependencies defined in the dependency m
 ```
 [INFO] Dependency tree of dependencymanagement configuration:
 [INFO] de.ebp:dependencymanagement-maven-plugin:maven-plugin:2.0.0-SNAPSHOT
-[INFO] +- org.apache.maven:maven-plugin-api:jar:3.5.2:compile
-[INFO] + cglib:cglib-nodep:jar:2.2.2:test
-[INFO] + com.anotherbigidea:javaswf:jar:20021114
-[INFO] + com.enterprisedt:edtftpj:jar:2.1.0
-[INFO] Artifact not in dependency management used: stax:stax-api:jar:1.0.1:compile (used by [MavenProject: ...])
-[INFO] Artifact not in dependency management used: org.orbisgis:poly2tri-core:jar:0.1.2:compile (used by [MavenProject: ..., MavenProject: ...])
+[INFO] +- org.apache.maven:maven-compat:jar:3.5.2:test
+[INFO] |  +- org.codehaus.plexus:plexus-interpolation:jar:1.24:compile
+[INFO] |  \- org.apache.maven.wagon:wagon-provider-api:jar:2.12:test
+...])
 ```
 
 # Getting started
