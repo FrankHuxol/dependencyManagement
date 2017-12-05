@@ -16,6 +16,7 @@ public class TreeMojo extends AbstractMojo {
 	private MavenProject project;
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
+		getLog().info("Dependency tree of dependencymanagement configuration:");
 		getLog().info(new ProjectArtifact(project).toString());
 	}
 

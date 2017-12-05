@@ -114,6 +114,8 @@ public class TreeMojoTest {
 		testedTreeMojo.execute();
 
 		InOrder inOrder = inOrder(mockedLog);
+		
+		inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
 		inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test:pom:0.0.1-SNAPSHOT");
 	}
 
