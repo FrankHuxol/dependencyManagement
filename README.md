@@ -10,7 +10,7 @@ Add to pom:
 			<plugin>
 			    <groupId>de.ebp</groupId>
 			    <artifactId>dependencymanagement-maven-plugin</artifactId>
-			    <version>1.0.0/version>
+			    <version>1.0.0</version>
 			</plugin>
 		</plugins>
 	</build>
