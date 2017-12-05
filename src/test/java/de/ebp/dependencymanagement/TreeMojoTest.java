@@ -117,6 +117,7 @@ public class TreeMojoTest {
 		
 		inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
 		inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test:pom:0.0.1-SNAPSHOT");
+		inOrder.verify(mockedLog).info("+- com.google.guava:guava:jar:20.0:compile");
 	}
 
 }
