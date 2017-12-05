@@ -1,5 +1,13 @@
 # dependencyManagement
-A maven module scanning the dependency management and enforcing, that no dependencies other than those are used.
+A maven plugin handling operations on the dependencymanagement section.
+
+## Available goals
+
+* enforce: Ensures, that the project is only using dependencies defined in the dependency management section.
+
+
+## Build status
+[![CircleCI](https://circleci.com/gh/FrankHuxol/dependencyManagement.svg?style=svg)](https://circleci.com/gh/FrankHuxol/dependencyManagement)
 
 ## Getting started
 
