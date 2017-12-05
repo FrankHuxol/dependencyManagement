@@ -1,5 +1,6 @@
 package de.ebp.dependencymanagement.util;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 
 import com.google.common.base.Optional;
@@ -23,11 +24,11 @@ public class Util {
 		Optional<String> scope = Optional.fromNullable(aDependency.getScope());
 
 		if (classifier.isPresent()) {
-			return groupId.or("") + ":" + artifactId.or("") + ":" + packaging.or("jar") + ":" + classifier.or("") + ":"
-					+ version.or("") + ":" + scope.or("compile");
+			return groupId.or("") + ":" + artifactId.or("") + ":" + packaging.or(new Dependency().getType()) + ":"
+					+ classifier.or("") + ":" + version.or("") + ":" + scope.or(Artifact.SCOPE_COMPILE);
 		} else {
-			return groupId.or("") + ":" + artifactId.or("") + ":" + packaging.or("jar") + ":" + version.or("") + ":"
-					+ scope.or("compile");
+			return groupId.or("") + ":" + artifactId.or("") + ":" + packaging.or(new Dependency().getType()) + ":"
+					+ version.or("") + ":" + scope.or(Artifact.SCOPE_COMPILE);
 		}
 
 	}
