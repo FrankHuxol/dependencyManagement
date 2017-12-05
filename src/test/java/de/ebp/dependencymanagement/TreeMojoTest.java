@@ -2,7 +2,9 @@ package de.ebp.dependencymanagement;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.io.File;
 import java.util.Arrays;
@@ -23,9 +25,10 @@ import org.apache.maven.project.ProjectBuildingRequest;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.internal.impl.SimpleLocalRepositoryManagerFactory;
 import org.eclipse.aether.repository.LocalRepository;
+import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.InOrder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -113,15 +116,15 @@ public class TreeMojoTest {
 	public void testTree() throws Exception {
 		testedTreeMojo.execute();
 
-		InOrder inOrder = inOrder(mockedLog);
+		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+		verify(mockedLog, atLeastOnce()).info(captor.capture());
 
-		inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
-		inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test:pom:0.0.1-SNAPSHOT");
-		inOrder.verify(mockedLog).info("+- com.google.guava:guava:jar:20.0:compile");
-		inOrder.verify(mockedLog).info("+- org.slf4j:slf4j-api:jar:1.7.21:compile");
-		inOrder.verify(mockedLog).info("\\- junit:junit:jar:4.12:test");
+		assertThat(captor.getAllValues(),
+				IsIterableContainingInOrder.contains("Dependency tree of dependencymanagement configuration:",
+						"de.ebp:tree-mojo-test:pom:0.0.1-SNAPSHOT", "+- com.google.guava:guava:jar:20.0:compile",
+						"+- org.slf4j:slf4j-api:jar:1.7.21:compile", "\\- junit:junit:jar:4.12:test"));
 
-		inOrder.verifyNoMoreInteractions();
+		verifyNoMoreInteractions(mockedLog);
 
 	}
 
