@@ -9,6 +9,8 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.artifact.ProjectArtifact;
 
+import de.ebp.dependencymanagement.util.Util;
+
 @Mojo(name = "tree", requiresDependencyResolution = ResolutionScope.TEST)
 public class TreeMojo extends AbstractMojo {
 
@@ -18,6 +20,7 @@ public class TreeMojo extends AbstractMojo {
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		getLog().info("Dependency tree of dependencymanagement configuration:");
 		getLog().info(new ProjectArtifact(project).toString());
+		getLog().info("+- " + Util.toReadableString(project.getDependencyManagement().getDependencies().get(0)));
 	}
 
 }
