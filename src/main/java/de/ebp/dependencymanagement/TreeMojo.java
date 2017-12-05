@@ -20,6 +20,7 @@ import org.apache.maven.shared.dependency.graph.internal.DefaultDependencyNode;
 import org.apache.maven.shared.dependency.graph.traversal.SerializingDependencyNodeVisitor;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.StandardSystemProperty;
 
 import de.ebp.dependencymanagement.graph.FullDependenciesGraphBuilder;
 
@@ -71,7 +72,8 @@ public class TreeMojo extends AbstractMojo {
 
 		theProjectNode.accept(v);
 
-		List<String> singleLines = Splitter.on("\r\n").omitEmptyStrings().splitToList(writer.toString());
+		List<String> singleLines = Splitter.on(StandardSystemProperty.LINE_SEPARATOR.value()).omitEmptyStrings()
+				.splitToList(writer.toString());
 		getLog().info("Dependency tree of dependencymanagement configuration:");
 		for (String singleLine : singleLines) {
 			getLog().info(singleLine);
