@@ -43,4 +43,3 @@ jobs:
       # store artifacts
       - store_artifacts:
          path: target/dependencymanagement-maven-plugin-*.jar
-         destination: jar
