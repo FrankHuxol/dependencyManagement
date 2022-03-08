@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.apache.maven.DefaultMaven;
 import org.apache.maven.Maven;
@@ -87,7 +88,7 @@ public class TreeMojoTest {
 		public MavenSession newMavenSession(MavenProject project) {
 			MavenSession session = newMavenSession();
 			session.setCurrentProject(project);
-			session.setProjects(Arrays.asList(project));
+			session.setProjects(Collections.singletonList(project));
 			return session;
 		}
 
