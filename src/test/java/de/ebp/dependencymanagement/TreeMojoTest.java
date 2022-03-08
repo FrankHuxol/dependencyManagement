@@ -93,7 +93,7 @@ public class TreeMojoTest {
 
 		@Override
 		protected void before() throws Throwable {
-			MockitoAnnotations.initMocks(TreeMojoTest.this);
+			MockitoAnnotations.openMocks(TreeMojoTest.this);
 
 			ProjectBuildingRequest buildingRequest = newMavenSession().getProjectBuildingRequest();
 			ProjectBuilder projectBuilder = lookup(ProjectBuilder.class);
