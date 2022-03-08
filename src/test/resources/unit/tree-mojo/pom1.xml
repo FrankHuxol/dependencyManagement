@@ -12,6 +12,7 @@
 			<plugin>
 				<artifactId>dependencymanagement-maven-plugin</artifactId>
 				<configuration>
+					<depth>1</depth>
 				</configuration>
 			</plugin>
 		</plugins>
