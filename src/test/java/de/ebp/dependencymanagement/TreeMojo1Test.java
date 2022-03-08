@@ -1,15 +1,5 @@
 package de.ebp.dependencymanagement;
 
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-
 import org.apache.maven.DefaultMaven;
 import org.apache.maven.Maven;
 import org.apache.maven.execution.DefaultMavenExecutionRequest;
@@ -33,7 +23,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-public class TreeMojoTest {
+import java.io.File;
+import java.util.Collections;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.*;
+
+public class TreeMojo1Test {
 
 	TreeMojo testedTreeMojo;
 	@Mock
@@ -94,7 +91,7 @@ public class TreeMojoTest {
 
 		@Override
 		protected void before() throws Throwable {
-			MockitoAnnotations.openMocks(TreeMojoTest.this);
+			MockitoAnnotations.openMocks(TreeMojo1Test.this);
 
 			ProjectBuildingRequest buildingRequest = newMavenSession().getProjectBuildingRequest();
 			ProjectBuilder projectBuilder = lookup(ProjectBuilder.class);
