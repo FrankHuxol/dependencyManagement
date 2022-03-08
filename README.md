@@ -2,7 +2,7 @@
 A maven plugin handling operations on the dependencymanagement section.
 
 ## Build status
-[![CircleCI](https://circleci.com/gh/FrankHuxol/dependencyManagement.svg?style=svg)](https://circleci.com/gh/FrankHuxol/dependencyManagement) powered by CircleCI
+[![FrankHuxol](https://circleci.com/gh/FrankHuxol/dependencyManagement.svg?style=svg)](https://circleci.com/gh/FrankHuxol/dependencyManagement) powered by CircleCI
 
 # Available goals
 
