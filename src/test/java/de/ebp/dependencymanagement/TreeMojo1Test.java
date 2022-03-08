@@ -96,7 +96,7 @@ public class TreeMojo1Test {
 			ProjectBuildingRequest buildingRequest = newMavenSession().getProjectBuildingRequest();
 			ProjectBuilder projectBuilder = lookup(ProjectBuilder.class);
 			MavenProject project = projectBuilder
-					.build(new File("src/test/resources/unit/tree-mojo/pom.xml"), buildingRequest).getProject();
+					.build(new File("src/test/resources/unit/tree-mojo/pom1.xml"), buildingRequest).getProject();
 
 			testedTreeMojo = (TreeMojo) lookupConfiguredMojo(project, "tree");
 
