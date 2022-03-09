@@ -1,9 +1,11 @@
 package de.ebp.dependencymanagement;
 
+import com.google.common.base.Splitter;
+import com.google.common.base.StandardSystemProperty;
+import de.ebp.dependencymanagement.graph.FullDependenciesGraphBuilder;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -13,10 +15,6 @@ import org.apache.maven.shared.dependency.graph.DependencyNode;
 import org.apache.maven.shared.dependency.graph.internal.DefaultDependencyNode;
 import org.apache.maven.shared.dependency.graph.traversal.SerializingDependencyNodeVisitor;
 
-import com.google.common.base.Splitter;
-import com.google.common.base.StandardSystemProperty;
-
-import de.ebp.dependencymanagement.graph.FullDependenciesGraphBuilder;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -29,12 +27,15 @@ public class TreeMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
+    @Parameter(defaultValue = "${session}", readonly = true, required = true)
+    private MavenSession session;
 
     @Parameter(property = "tree.maxDepth", defaultValue = "-1")
     private int maxDepth;
 
     @Override
     public void execute() {
+        // The reason to first create the graph and then log it is to get the log output consecutive without interruptions due to downloading more artifacts
         DependencyNode projectNode = createDependenciesGraph();
 
         logDependencies(projectNode);
@@ -46,10 +47,9 @@ public class TreeMojo extends AbstractMojo {
      * @return The full dependency graph
      */
     private DependencyNode createDependenciesGraph() {
-        int maxResolutionDepth = 1;
+        int maxResolutionDepth = maxDepth;
         ProjectArtifact projectArtifact = new ProjectArtifact(project);
-        FullDependenciesGraphBuilder graphBuilder = new FullDependenciesGraphBuilder(
-                projectArtifact.getArtifactHandler());
+        FullDependenciesGraphBuilder graphBuilder = new FullDependenciesGraphBuilder(project, getLog());
 
         // create root node, but do not resolve anything
         DependencyNode projectNode = graphBuilder.createNode(projectArtifact, null, 0);
@@ -58,7 +58,7 @@ public class TreeMojo extends AbstractMojo {
         // dependencies from there
         List<DependencyNode> childNodes = new ArrayList<>();
         for (Dependency currentDependency : project.getDependencyManagement().getDependencies()) {
-            childNodes.add(graphBuilder.createNode(currentDependency, projectNode, maxResolutionDepth));
+            childNodes.add(graphBuilder.createNode(currentDependency, projectNode, maxResolutionDepth - 1));
         }
         ((DefaultDependencyNode) projectNode).setChildren(Collections.unmodifiableList(childNodes));
         return projectNode;
@@ -83,5 +83,4 @@ public class TreeMojo extends AbstractMojo {
             getLog().info(singleLine);
         }
     }
-
 }

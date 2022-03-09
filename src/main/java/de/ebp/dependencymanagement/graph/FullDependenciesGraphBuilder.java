@@ -1,11 +1,33 @@
 package de.ebp.dependencymanagement.graph;
 
+import com.google.common.base.Joiner;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
-import org.apache.maven.artifact.handler.ArtifactHandler;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.apache.maven.shared.dependency.graph.DependencyNode;
 import org.apache.maven.shared.dependency.graph.internal.DefaultDependencyNode;
+import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
+import org.eclipse.aether.impl.DefaultServiceLocator;
+import org.eclipse.aether.repository.LocalRepository;
+import org.eclipse.aether.repository.Proxy;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.resolution.ArtifactDescriptorException;
+import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
+import org.eclipse.aether.resolution.ArtifactDescriptorResult;
+import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
+import org.eclipse.aether.spi.connector.transport.TransporterFactory;
+import org.eclipse.aether.transport.file.FileTransporterFactory;
+import org.eclipse.aether.transport.http.HttpTransporterFactory;
+import org.eclipse.aether.util.repository.DefaultMirrorSelector;
+import org.eclipse.aether.util.repository.DefaultProxySelector;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,11 +36,18 @@ import java.util.Optional;
 
 public class FullDependenciesGraphBuilder {
 
-    private final ArtifactHandler artifactHandler;
+    private final MavenProject project;
+    private final Log log;
+    private final RepositorySystem repositorySystem;
+    private final RepositorySystemSession repositorySystemSession;
 
-    public FullDependenciesGraphBuilder(ArtifactHandler anArtifactHandler) {
+    public FullDependenciesGraphBuilder(MavenProject aProject, Log mavenLog) {
         super();
-        this.artifactHandler = anArtifactHandler;
+        project = aProject;
+        log = mavenLog;
+        DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
+        repositorySystem = newRepositorySystem(locator);
+        repositorySystemSession = newSession(repositorySystem);
     }
 
     /**
@@ -87,7 +116,7 @@ public class FullDependenciesGraphBuilder {
         Optional<String> version = Optional.ofNullable(aDependency.getVersion());
         Optional<String> scope = Optional.ofNullable(aDependency.getScope());
         return new DefaultArtifact(groupId.orElse(""), artifactId.orElse(""), version.orElse(""), scope.orElse(Artifact.SCOPE_COMPILE),
-                type.orElse(new Dependency().getType()), classifier.orElse(""), artifactHandler);
+                type.orElse(new Dependency().getType()), classifier.orElse(""), null);
     }
 
     /**
@@ -97,6 +126,24 @@ public class FullDependenciesGraphBuilder {
      * @return The dependencies of the provided artifact
      */
     private List<Dependency> getDependencies(Artifact anArtifact) {
+        try {
+            org.eclipse.aether.artifact.Artifact artifact = convert(anArtifact);
+            ArtifactDescriptorRequest request = new ArtifactDescriptorRequest(artifact, convert(project.getRemoteArtifactRepositories()), null);
+            ArtifactDescriptorResult result = repositorySystem.readArtifactDescriptor(repositorySystemSession, request);
+
+            List<Dependency> dependencies = new ArrayList<>();
+            for (org.eclipse.aether.graph.Dependency dependency : result.getDependencies()) {
+                dependencies.add(convert(dependency));
+            }
+
+            return dependencies;
+        } catch (ArtifactDescriptorException e) {
+            if (e.getCause() != null && e.getCause().getCause() instanceof ArtifactNotFoundException) {
+                //ignore
+                return new ArrayList<>();
+            }
+            log.error("Could not retrieve dependencies for artifact " + anArtifact, e);
+        }
         return new ArrayList<>();
     }
 
