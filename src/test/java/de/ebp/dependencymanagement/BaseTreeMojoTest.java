@@ -74,6 +74,8 @@ public abstract class BaseTreeMojoTest {
         ArtifactRepository localRepo = createLocalArtifactRepository();
         session.getRequest().setLocalRepository(localRepo);
 
+        session.getRequest().setRemoteRepositories(project.getRemoteArtifactRepositories());
+
         // Generate Execution and Mojo for testing
         MojoExecution execution = mojoRule.newMojoExecution(aGoal);
         AbstractMojo mojo = (AbstractMojo) mojoRule.lookupConfiguredMojo(session, execution);
