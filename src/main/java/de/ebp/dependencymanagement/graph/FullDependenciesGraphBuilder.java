@@ -99,4 +99,19 @@ public class FullDependenciesGraphBuilder {
     private List<Dependency> getDependencies(Artifact anArtifact) {
         return new ArrayList<>();
     }
+
+    /**
+     * Converts the provided aether dependency to regular maven dependency
+     * @param aetherDep The aether dependency to convert.
+     * @return The converted maven dependency.
+     */
+    private Dependency convert(org.eclipse.aether.graph.Dependency aetherDep) {
+        Dependency dependency = new Dependency();
+        dependency.setGroupId(aetherDep.getArtifact().getGroupId());
+        dependency.setArtifactId(aetherDep.getArtifact().getArtifactId());
+        dependency.setVersion(aetherDep.getArtifact().getVersion());
+        dependency.setType(aetherDep.getArtifact().getExtension());
+        dependency.setScope(aetherDep.getScope());
+        return dependency;
+    }
 }
