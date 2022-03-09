@@ -3,6 +3,7 @@
 version: 2.1
 
 orbs:
+  #Code Coverage
   coveralls: coveralls/coveralls@1.0.6
 
 # Define a job to be invoked later in a workflow.
