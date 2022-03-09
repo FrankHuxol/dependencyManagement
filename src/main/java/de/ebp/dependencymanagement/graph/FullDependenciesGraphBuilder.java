@@ -63,7 +63,7 @@ public class FullDependenciesGraphBuilder {
     public DependencyNode createNode(Artifact anArtifact, DependencyNode theParent, String theScope,
                                      int theMaxResolutionDepth) {
         DefaultDependencyNode artifactNode = new DefaultDependencyNode(theParent, anArtifact, null, theScope, null);
-        if (theMaxResolutionDepth <= 0) {
+        if (theMaxResolutionDepth == 0) {
             artifactNode.setChildren(Collections.unmodifiableList(new ArrayList<>()));
             return artifactNode;
         }
