@@ -102,6 +102,7 @@ public class FullDependenciesGraphBuilder {
 
     /**
      * Converts the provided aether dependency to regular maven dependency
+     *
      * @param aetherDep The aether dependency to convert.
      * @return The converted maven dependency.
      */
@@ -123,8 +124,7 @@ public class FullDependenciesGraphBuilder {
      */
     private org.eclipse.aether.artifact.Artifact convert(Artifact mavenArtifact) {
         String artifactCoords = Joiner.on(':').join(mavenArtifact.getGroupId(), mavenArtifact.getArtifactId(), mavenArtifact.getVersion());
-        org.eclipse.aether.artifact.Artifact artifact = new org.eclipse.aether.artifact.DefaultArtifact(artifactCoords);
-        return artifact;
+        return new org.eclipse.aether.artifact.DefaultArtifact(artifactCoords);
     }
 
     /**
@@ -150,4 +150,34 @@ public class FullDependenciesGraphBuilder {
     private RemoteRepository convert(ArtifactRepository mavenRepository) {
         return new RemoteRepository.Builder(mavenRepository.getId(), mavenRepository.getBasedir(), mavenRepository.getUrl()).build();
     }
+
+    /**
+     * Creates new repository system.
+     *
+     * @param locator The locator to use.
+     * @return The repository system
+     */
+    private static RepositorySystem newRepositorySystem(DefaultServiceLocator locator) {
+        locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
+        locator.addService(TransporterFactory.class, FileTransporterFactory.class);
+        locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
+        return locator.getService(RepositorySystem.class);
+    }
+
+    /**
+     * Starts a new session for the provided repository.
+     *
+     * @param system The repository to start the session for.
+     * @return The session
+     */
+    private static RepositorySystemSession newSession(RepositorySystem system) {
+        DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
+        LocalRepository localRepo = new LocalRepository("target/local-repo");
+        session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
+        // set possible proxies and mirrors
+        session.setProxySelector(new DefaultProxySelector().add(new Proxy(Proxy.TYPE_HTTP, "host", 3625), "localhost|127.0.0.1"));
+        session.setMirrorSelector(new DefaultMirrorSelector().add("my-mirror", "http://mirror", "default", false, "external:*", null));
+        return session;
+    }
+
 }
