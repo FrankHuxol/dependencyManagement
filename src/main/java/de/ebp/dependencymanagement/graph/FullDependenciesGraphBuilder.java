@@ -1,9 +1,5 @@
 package de.ebp.dependencymanagement.graph;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.ArtifactHandler;
@@ -11,7 +7,10 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.shared.dependency.graph.DependencyNode;
 import org.apache.maven.shared.dependency.graph.internal.DefaultDependencyNode;
 
-import com.google.common.base.Optional;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 public class FullDependenciesGraphBuilder {
 
@@ -77,27 +76,27 @@ public class FullDependenciesGraphBuilder {
     /**
      * Converts the provided dependency to an artifact.
      *
-     * @param aDependency
-     * @return
+     * @param aDependency The dependency to resolve to an artifact
+     * @return The artifact
      */
     private Artifact toArtifact(Dependency aDependency) {
-        Optional<String> groupId = Optional.fromNullable(aDependency.getGroupId());
-        Optional<String> artifactId = Optional.fromNullable(aDependency.getArtifactId());
-        Optional<String> type = Optional.fromNullable(aDependency.getType());
-        Optional<String> classifier = Optional.fromNullable(aDependency.getClassifier());
-        Optional<String> version = Optional.fromNullable(aDependency.getVersion());
-        Optional<String> scope = Optional.fromNullable(aDependency.getScope());
-        return new DefaultArtifact(groupId.or(""), artifactId.or(""), version.or(""), scope.or(Artifact.SCOPE_COMPILE),
-                type.or(new Dependency().getType()), classifier.or(""), artifactHandler);
+        Optional<String> groupId = Optional.ofNullable(aDependency.getGroupId());
+        Optional<String> artifactId = Optional.ofNullable(aDependency.getArtifactId());
+        Optional<String> type = Optional.ofNullable(aDependency.getType());
+        Optional<String> classifier = Optional.ofNullable(aDependency.getClassifier());
+        Optional<String> version = Optional.ofNullable(aDependency.getVersion());
+        Optional<String> scope = Optional.ofNullable(aDependency.getScope());
+        return new DefaultArtifact(groupId.orElse(""), artifactId.orElse(""), version.orElse(""), scope.orElse(Artifact.SCOPE_COMPILE),
+                type.orElse(new Dependency().getType()), classifier.orElse(""), artifactHandler);
     }
 
     /**
      * Retrieves the dependencies of the provided artifact.
      *
-     * @param anArtifact
-     * @return
+     * @param anArtifact Retrieves the depedencies of the given artifact
+     * @return The dependencies of the provided artifact
      */
     private List<Dependency> getDependencies(Artifact anArtifact) {
-        return new ArrayList<Dependency>();
+        return new ArrayList<>();
     }
 }
