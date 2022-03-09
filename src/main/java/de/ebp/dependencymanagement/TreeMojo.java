@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Mojo(name = "tree", requiresDependencyResolution = ResolutionScope.TEST)
 public class TreeMojo extends AbstractMojo {
@@ -32,6 +33,9 @@ public class TreeMojo extends AbstractMojo {
 
     @Parameter(property = "tree.maxDepth", defaultValue = "-1")
     private int maxDepth;
+
+    @Parameter(property = "tree.scopes")
+    private List<String> scopes;
 
     @Override
     public void execute() {
@@ -49,7 +53,7 @@ public class TreeMojo extends AbstractMojo {
     private DependencyNode createDependenciesGraph() {
         int maxResolutionDepth = maxDepth;
         ProjectArtifact projectArtifact = new ProjectArtifact(project);
-        FullDependenciesGraphBuilder graphBuilder = new FullDependenciesGraphBuilder(project, getLog());
+        FullDependenciesGraphBuilder graphBuilder = new FullDependenciesGraphBuilder(project, getLog(), scopes);
 
         // create root node, but do not resolve anything
         DependencyNode projectNode = graphBuilder.createNode(projectArtifact, null, 0);
@@ -57,9 +61,11 @@ public class TreeMojo extends AbstractMojo {
         // now iterate over dependencymanagement section and add all
         // dependencies from there
         List<DependencyNode> childNodes = new ArrayList<>();
-        if(maxResolutionDepth != 0) {
+        if (maxResolutionDepth != 0) {
             for (Dependency currentDependency : project.getDependencyManagement().getDependencies()) {
-                childNodes.add(graphBuilder.createNode(currentDependency, projectNode, maxResolutionDepth - 1));
+                if (scopes.isEmpty() || scopes.contains(Optional.ofNullable(currentDependency.getScope()).orElse("compile"))) {
+                    childNodes.add(graphBuilder.createNode(currentDependency, projectNode, maxResolutionDepth - 1));
+                }
             }
         }
         ((DefaultDependencyNode) projectNode).setChildren(Collections.unmodifiableList(childNodes));

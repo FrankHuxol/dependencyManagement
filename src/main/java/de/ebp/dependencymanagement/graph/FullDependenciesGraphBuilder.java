@@ -40,11 +40,13 @@ public class FullDependenciesGraphBuilder {
     private final Log log;
     private final RepositorySystem repositorySystem;
     private final RepositorySystemSession repositorySystemSession;
+    private final List<String> scopes;
 
-    public FullDependenciesGraphBuilder(MavenProject aProject, Log mavenLog) {
+    public FullDependenciesGraphBuilder(MavenProject aProject, Log mavenLog, List<String> someScopes) {
         super();
         project = aProject;
         log = mavenLog;
+        scopes = someScopes;
         DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
         repositorySystem = newRepositorySystem(locator);
         repositorySystemSession = newSession(repositorySystem);
@@ -70,7 +72,9 @@ public class FullDependenciesGraphBuilder {
 
         List<DependencyNode> childNodes = new ArrayList<>();
         for (Dependency currentDependency : getDependencies(anArtifact)) {
-            childNodes.add(createNode(toArtifact(currentDependency), artifactNode, theMaxResolutionDepth - 1));
+            if (scopes.isEmpty() || scopes.contains(Optional.ofNullable(currentDependency.getScope()).orElse("compile"))) {
+                childNodes.add(createNode(toArtifact(currentDependency), artifactNode, theMaxResolutionDepth - 1));
+            }
         }
         artifactNode.setChildren(Collections.unmodifiableList(childNodes));
         return artifactNode;
