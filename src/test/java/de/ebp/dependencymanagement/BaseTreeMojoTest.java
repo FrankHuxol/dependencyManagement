@@ -10,15 +10,22 @@ import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.apache.maven.project.MavenProject;
+import org.hamcrest.collection.IsEmptyCollection;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.exceptions.verification.VerificationInOrderFailure;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.inOrder;
 
 public abstract class BaseTreeMojoTest {
 
@@ -83,5 +90,24 @@ public abstract class BaseTreeMojoTest {
         mojo.setLog(mockedLog);
         return mojo;
     }
+
+    /**
+     * Convenience method to verify calls towards log in a particular order. If a verification fails, additional text output is created.
+     *
+     * @param inOrder A callback providing the actual verifications
+     * @throws VerificationInOrderFailure In case the verification fails
+     */
+    protected void verify(Consumer<InOrder> inOrder) throws VerificationInOrderFailure {
+        InOrder i = inOrder(mockedLog);
+        try {
+            inOrder.accept(i);
+        } catch (VerificationInOrderFailure e) {
+            ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+            i.verify(mockedLog, atLeastOnce()).info(captor.capture());
+            assertThat("Tree verification failed due to: " + e.getMessage() + "\nFound these remaining logs", captor.getAllValues(), IsEmptyCollection.empty());
+            throw e;
+        }
+    }
+
 
 }
