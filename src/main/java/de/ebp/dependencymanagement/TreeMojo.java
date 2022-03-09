@@ -3,7 +3,6 @@ package de.ebp.dependencymanagement;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
 import de.ebp.dependencymanagement.graph.FullDependenciesGraphBuilder;
-import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -28,8 +27,6 @@ public class TreeMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
-    @Parameter(defaultValue = "${session}", readonly = true, required = true)
-    private MavenSession session;
 
     @Parameter(property = "tree.maxDepth", defaultValue = "-1")
     private int maxDepth;
