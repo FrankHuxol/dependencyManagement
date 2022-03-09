@@ -27,61 +27,61 @@ import de.ebp.dependencymanagement.graph.FullDependenciesGraphBuilder;
 @Mojo(name = "tree", requiresDependencyResolution = ResolutionScope.TEST)
 public class TreeMojo extends AbstractMojo {
 
-	@Parameter(defaultValue = "${project}", readonly = true, required = true)
-	private MavenProject project;
+    @Parameter(defaultValue = "${project}", readonly = true, required = true)
+    private MavenProject project;
 
-	@Parameter( property = "depth", defaultValue = "3" )
-	private int depth;
+    @Parameter(property = "depth", defaultValue = "3")
+    private int depth;
 
-	@Override
-	public void execute() {
-		DependencyNode projectNode = createDependenciesGraph();
+    @Override
+    public void execute() {
+        DependencyNode projectNode = createDependenciesGraph();
 
-		logDependencies(projectNode);
-	}
+        logDependencies(projectNode);
+    }
 
-	/**
-	 * Creates the dependencies graph.
-	 * 
-	 * @return
-	 */
-	private DependencyNode createDependenciesGraph() {
-		int maxResolutionDepth = 1;
-		ProjectArtifact projectArtifact = new ProjectArtifact(project);
-		FullDependenciesGraphBuilder graphBuilder = new FullDependenciesGraphBuilder(
-				projectArtifact.getArtifactHandler());
+    /**
+     * Creates the dependencies graph.
+     *
+     * @return
+     */
+    private DependencyNode createDependenciesGraph() {
+        int maxResolutionDepth = 1;
+        ProjectArtifact projectArtifact = new ProjectArtifact(project);
+        FullDependenciesGraphBuilder graphBuilder = new FullDependenciesGraphBuilder(
+                projectArtifact.getArtifactHandler());
 
-		// create root node, but do not resolve anything
-		DependencyNode projectNode = graphBuilder.createNode(projectArtifact, null, 0);
+        // create root node, but do not resolve anything
+        DependencyNode projectNode = graphBuilder.createNode(projectArtifact, null, 0);
 
-		// now iterate over dependencymanagement section and add all
-		// dependencies from there
-		List<DependencyNode> childNodes = new ArrayList<>();
-		for (Dependency currentDependency : project.getDependencyManagement().getDependencies()) {
-			childNodes.add(graphBuilder.createNode(currentDependency, projectNode, maxResolutionDepth));
-		}
-		((DefaultDependencyNode) projectNode).setChildren(Collections.unmodifiableList(childNodes));
-		return projectNode;
-	}
+        // now iterate over dependencymanagement section and add all
+        // dependencies from there
+        List<DependencyNode> childNodes = new ArrayList<>();
+        for (Dependency currentDependency : project.getDependencyManagement().getDependencies()) {
+            childNodes.add(graphBuilder.createNode(currentDependency, projectNode, maxResolutionDepth));
+        }
+        ((DefaultDependencyNode) projectNode).setChildren(Collections.unmodifiableList(childNodes));
+        return projectNode;
+    }
 
-	/**
-	 * Sends the provided node and its contained dependencies to log.info.
-	 * 
-	 * @param theProjectNode
-	 */
-	private void logDependencies(DependencyNode theProjectNode) {
-		Writer writer = new StringWriter();
-		SerializingDependencyNodeVisitor v = new SerializingDependencyNodeVisitor(writer,
-				SerializingDependencyNodeVisitor.STANDARD_TOKENS);
+    /**
+     * Sends the provided node and its contained dependencies to log.info.
+     *
+     * @param theProjectNode
+     */
+    private void logDependencies(DependencyNode theProjectNode) {
+        Writer writer = new StringWriter();
+        SerializingDependencyNodeVisitor v = new SerializingDependencyNodeVisitor(writer,
+                SerializingDependencyNodeVisitor.STANDARD_TOKENS);
 
-		theProjectNode.accept(v);
+        theProjectNode.accept(v);
 
-		List<String> singleLines = Splitter.on(StandardSystemProperty.LINE_SEPARATOR.value()).omitEmptyStrings()
-				.splitToList(writer.toString());
-		getLog().info("Dependency tree of dependencymanagement configuration:");
-		for (String singleLine : singleLines) {
-			getLog().info(singleLine);
-		}
-	}
+        List<String> singleLines = Splitter.on(StandardSystemProperty.LINE_SEPARATOR.value()).omitEmptyStrings()
+                .splitToList(writer.toString());
+        getLog().info("Dependency tree of dependencymanagement configuration:");
+        for (String singleLine : singleLines) {
+            getLog().info(singleLine);
+        }
+    }
 
 }
