@@ -114,4 +114,40 @@ public class FullDependenciesGraphBuilder {
         dependency.setScope(aetherDep.getScope());
         return dependency;
     }
+
+    /**
+     * Converts the provided maven artifact to an aether artifact.
+     *
+     * @param mavenArtifact The maven artifact to convert.
+     * @return The converted aether artifact.
+     */
+    private org.eclipse.aether.artifact.Artifact convert(Artifact mavenArtifact) {
+        String artifactCoords = Joiner.on(':').join(mavenArtifact.getGroupId(), mavenArtifact.getArtifactId(), mavenArtifact.getVersion());
+        org.eclipse.aether.artifact.Artifact artifact = new org.eclipse.aether.artifact.DefaultArtifact(artifactCoords);
+        return artifact;
+    }
+
+    /**
+     * Converts the provided maven repositories to aether repositories.
+     *
+     * @param mavenRepositories The maven repositories to convert.
+     * @return The converted aether repositories.
+     */
+    private List<RemoteRepository> convert(List<ArtifactRepository> mavenRepositories) {
+        List<RemoteRepository> aetherRepositories = new ArrayList<>();
+        for (ArtifactRepository mavenRepository : mavenRepositories) {
+            aetherRepositories.add(convert(mavenRepository));
+        }
+        return aetherRepositories;
+    }
+
+    /**
+     * Converts the provided maven repository to an aether repository.
+     *
+     * @param mavenRepository The maven repository to convert.
+     * @return The converted aether repository.
+     */
+    private RemoteRepository convert(ArtifactRepository mavenRepository) {
+        return new RemoteRepository.Builder(mavenRepository.getId(), mavenRepository.getBasedir(), mavenRepository.getUrl()).build();
+    }
 }
