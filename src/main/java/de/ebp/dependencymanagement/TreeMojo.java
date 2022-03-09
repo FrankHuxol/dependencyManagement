@@ -33,7 +33,8 @@ public class TreeMojo extends AbstractMojo {
 	@Parameter( property = "depth", defaultValue = "3" )
 	private int depth;
 
-	public void execute() throws MojoExecutionException, MojoFailureException {
+	@Override
+	public void execute() {
 		DependencyNode projectNode = createDependenciesGraph();
 
 		logDependencies(projectNode);
@@ -55,7 +56,7 @@ public class TreeMojo extends AbstractMojo {
 
 		// now iterate over dependencymanagement section and add all
 		// dependencies from there
-		List<DependencyNode> childNodes = new ArrayList<DependencyNode>();
+		List<DependencyNode> childNodes = new ArrayList<>();
 		for (Dependency currentDependency : project.getDependencyManagement().getDependencies()) {
 			childNodes.add(graphBuilder.createNode(currentDependency, projectNode, maxResolutionDepth));
 		}
