@@ -26,21 +26,21 @@ public class FullDependenciesGraphBuilder {
 	 * Creates a node for the provided artifact, using the provided node as
 	 * parent.
 	 * 
-	 * @param anArtifact
-	 * @param theParent
-	 * @param theScope
-	 * @param theMaxResolutionDepth
-	 * @return
+	 * @param anArtifact the Artifact to create a dependency node for
+	 * @param theParent The parent to create the node for
+	 * @param theScope The scope to create the node for
+	 * @param theMaxResolutionDepth The maximum resolution depth to use
+	 * @return A dependency node for the given parameters
 	 */
 	public DependencyNode createNode(Artifact anArtifact, DependencyNode theParent, String theScope,
 			int theMaxResolutionDepth) {
 		DefaultDependencyNode artifactNode = new DefaultDependencyNode(theParent, anArtifact, null, theScope, null);
 		if (theMaxResolutionDepth <= 0) {
-			artifactNode.setChildren(Collections.unmodifiableList(new ArrayList<DependencyNode>()));
+			artifactNode.setChildren(Collections.unmodifiableList(new ArrayList<>()));
 			return artifactNode;
 		}
 
-		List<DependencyNode> childNodes = new ArrayList<DependencyNode>();
+		List<DependencyNode> childNodes = new ArrayList<>();
 		for (Dependency currentDependency : getDependencies(anArtifact)) {
 			childNodes.add(createNode(toArtifact(currentDependency), artifactNode, theMaxResolutionDepth - 1));
 		}
@@ -52,10 +52,10 @@ public class FullDependenciesGraphBuilder {
 	 * Creates a new dependency node for the provided dependency using the
 	 * provided node as parent.
 	 * 
-	 * @param anArtifact
-	 * @param theParent
-	 * @param theMaxResolutionDepth
-	 * @return
+	 * @param anArtifact The artifact to create the node for
+	 * @param theParent The parent to create the node for
+	 * @param theMaxResolutionDepth The maximum resolution depth to use
+	 * @return A dependency node for the given parameters
 	 */
 	public DependencyNode createNode(Artifact anArtifact, DependencyNode theParent, int theMaxResolutionDepth) {
 		return createNode(anArtifact, theParent, null, theMaxResolutionDepth);
@@ -65,11 +65,11 @@ public class FullDependenciesGraphBuilder {
 	 * Creates a new dependency node for the provided dependency using the
 	 * provided node as parent.
 	 * 
-	 * @param aDependency
-	 * @param theParent
+	 * @param aDependency The dependency to create the node for
+	 * @param theParent The parent to create the node for
 	 * @param theMaxResolutionDepth
 	 *            Specifies the max depth for resolution
-	 * @return
+	 * @return A dependency node for the given parameters
 	 */
 	public DependencyNode createNode(Dependency aDependency, DependencyNode theParent, int theMaxResolutionDepth) {
 		return this.createNode(toArtifact(aDependency), theParent, theMaxResolutionDepth);
@@ -101,5 +101,4 @@ public class FullDependenciesGraphBuilder {
 	private List<Dependency> getDependencies(Artifact anArtifact) {
 		return new ArrayList<Dependency>();
 	}
-
 }
