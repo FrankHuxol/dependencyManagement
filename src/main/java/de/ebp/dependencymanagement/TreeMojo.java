@@ -34,7 +34,7 @@ public class TreeMojo extends AbstractMojo {
     @Parameter(property = "tree.maxDepth", defaultValue = "-1")
     private int maxDepth;
 
-    @Parameter(property = "tree.scopes", defaultValue = "compile")
+    @Parameter(property = "tree.scopes")
     private List<String> scopes;
 
     @Override
@@ -63,7 +63,7 @@ public class TreeMojo extends AbstractMojo {
         List<DependencyNode> childNodes = new ArrayList<>();
         if (maxResolutionDepth != 0) {
             for (Dependency currentDependency : project.getDependencyManagement().getDependencies()) {
-                if (scopes.contains(Optional.ofNullable(currentDependency.getScope()).orElse("compile"))) {
+                if (scopes == null || scopes.contains(Optional.ofNullable(currentDependency.getScope()).orElse("compile"))) {
                     childNodes.add(graphBuilder.createNode(currentDependency, projectNode, maxResolutionDepth - 1));
                 }
             }
