@@ -33,6 +33,9 @@ public class TreeMojo extends AbstractMojo {
     @Parameter(property = "tree.maxDepth", defaultValue = "-1")
     private int maxDepth;
 
+    @Parameter(property = "tree.scopes", defaultValue = "compile")
+    private List<String> scopes;
+
     @Override
     public void execute() {
         // The reason to first create the graph and then log it is to get the log output consecutive without interruptions due to downloading more artifacts
