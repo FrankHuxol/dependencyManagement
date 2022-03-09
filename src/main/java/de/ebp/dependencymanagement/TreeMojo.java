@@ -30,8 +30,8 @@ public class TreeMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
 
-    @Parameter(property = "depth", defaultValue = "3")
-    private int depth;
+    @Parameter(property = "tree.maxDepth", defaultValue = "-1")
+    private int maxDepth;
 
     @Override
     public void execute() {
