@@ -23,7 +23,7 @@ public class TreeMojoMaxDepthTest extends BaseTreeMojoTest {
         assertThat(captor.getAllValues(),
                 IsIterableContainingInOrder.contains(
                         "Dependency tree of dependencymanagement configuration:",
-                        "de.ebp:tree-mojo-test:pom:0.0.1-SNAPSHOT",
+                        "de.ebp:tree-mojo-test-depth1:pom:0.0.1-SNAPSHOT",
                         "+- com.google.guava:guava:jar:31.1-jre:compile",
                         "+- org.slf4j:slf4j-api:jar:1.7.21:compile",
                         "\\- junit:junit:jar:4.13.1:test"));
