@@ -47,15 +47,17 @@ public class TreeMojoMaxDepthTest extends BaseTreeMojoTest {
                         "Dependency tree of dependencymanagement configuration:",
                         "de.ebp:tree-mojo-test-depth2:pom:0.0.1-SNAPSHOT",
                         "+- com.google.guava:guava:jar:31.1-jre:compile",
-                        "|  +- com.google.code.findbugs:jsr305:3.0.2",
-                        "|  +- com.google.errorprone:error_prone_annotations:2.11.0",
-                        "|  +- com.google.guava:failureaccess:1.0.1",
-                        "|  +- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava",
-                        "|  +- com.google.j2objc:j2objc-annotations:1.3",
-                        "|  \\- org.checkerframework:checker-qual:3.12.0",
+                        "|  +- com.google.guava:failureaccess:jar:1.0.1:compile",
+                        "|  +- com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava:compile",
+                        "|  +- com.google.code.findbugs:jsr305:jar:3.0.2:compile",
+                        "|  +- org.checkerframework:checker-qual:jar:3.12.0:compile",
+                        "|  +- com.google.errorprone:error_prone_annotations:jar:2.11.0:compile",
+                        "|  \\- com.google.j2objc:j2objc-annotations:jar:1.3:compile",
                         "+- org.slf4j:slf4j-api:jar:1.7.21:compile",
+                        "|  \\- junit:junit:jar:4.12:test",
                         "\\- junit:junit:jar:4.13.1:test",
-                        "|  +- org.hamcrest:hamcrest-core:1.3"));
+                        "   +- org.hamcrest:hamcrest-core:jar:1.3:compile",
+                        "   \\- org.hamcrest:hamcrest-library:jar:1.3:test"));
 
         verifyNoMoreInteractions(mockedLog);
     }
