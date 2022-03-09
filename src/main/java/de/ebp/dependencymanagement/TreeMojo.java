@@ -1,11 +1,5 @@
 package de.ebp.dependencymanagement;
 
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -23,6 +17,12 @@ import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
 
 import de.ebp.dependencymanagement.graph.FullDependenciesGraphBuilder;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 @Mojo(name = "tree", requiresDependencyResolution = ResolutionScope.TEST)
 public class TreeMojo extends AbstractMojo {
