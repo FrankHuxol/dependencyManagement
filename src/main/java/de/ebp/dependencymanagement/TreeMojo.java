@@ -43,7 +43,7 @@ public class TreeMojo extends AbstractMojo {
     /**
      * Creates the dependencies graph.
      *
-     * @return
+     * @return The full dependency graph
      */
     private DependencyNode createDependenciesGraph() {
         int maxResolutionDepth = 1;
@@ -67,7 +67,7 @@ public class TreeMojo extends AbstractMojo {
     /**
      * Sends the provided node and its contained dependencies to log.info.
      *
-     * @param theProjectNode
+     * @param theProjectNode The node, which should be logged
      */
     private void logDependencies(DependencyNode theProjectNode) {
         Writer writer = new StringWriter();
@@ -76,8 +76,8 @@ public class TreeMojo extends AbstractMojo {
 
         theProjectNode.accept(v);
 
-        List<String> singleLines = Splitter.on(StandardSystemProperty.LINE_SEPARATOR.value()).omitEmptyStrings()
-                .splitToList(writer.toString());
+        Iterable<String> singleLines = Splitter.on(Objects.requireNonNull(StandardSystemProperty.LINE_SEPARATOR.value())).omitEmptyStrings()
+                .split(writer.toString());
         getLog().info("Dependency tree of dependencymanagement configuration:");
         for (String singleLine : singleLines) {
             getLog().info(singleLine);
