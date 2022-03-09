@@ -10,6 +10,7 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>de.ebp</groupId>
 				<artifactId>dependencymanagement-maven-plugin</artifactId>
 				<configuration>
 					<depth>1</depth>
