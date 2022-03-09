@@ -57,8 +57,10 @@ public class TreeMojo extends AbstractMojo {
         // now iterate over dependencymanagement section and add all
         // dependencies from there
         List<DependencyNode> childNodes = new ArrayList<>();
-        for (Dependency currentDependency : project.getDependencyManagement().getDependencies()) {
-            childNodes.add(graphBuilder.createNode(currentDependency, projectNode, maxResolutionDepth - 1));
+        if(maxResolutionDepth != 0) {
+            for (Dependency currentDependency : project.getDependencyManagement().getDependencies()) {
+                childNodes.add(graphBuilder.createNode(currentDependency, projectNode, maxResolutionDepth - 1));
+            }
         }
         ((DefaultDependencyNode) projectNode).setChildren(Collections.unmodifiableList(childNodes));
         return projectNode;

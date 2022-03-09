@@ -5,6 +5,21 @@ import org.junit.Test;
 public class TreeMojoMaxDepthTest extends BaseTreeMojoTest {
 
     @Test
+    public void testTreeDepth0() throws Exception {
+        TreeMojo testedTreeMojo = (TreeMojo) prepareMojo("src/test/resources/unit/tree-mojo/depth0", "tree");
+
+        // run test
+        testedTreeMojo.execute();
+
+        // verify
+        verify(inOrder -> {
+            inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
+            inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test-depth0:pom:0.0.1-SNAPSHOT");
+            inOrder.verifyNoMoreInteractions();
+        });
+    }
+
+    @Test
     public void testTreeDepth1() throws Exception {
         TreeMojo testedTreeMojo = (TreeMojo) prepareMojo("src/test/resources/unit/tree-mojo/depth1", "tree");
 
