@@ -24,7 +24,7 @@ public abstract class BaseTreeMojoTest {
 
         @Override
         protected void before() {
-            MockitoAnnotations.openMocks(this);
+            MockitoAnnotations.openMocks(BaseTreeMojoTest.this);
         }
 
         @Override

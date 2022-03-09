@@ -33,11 +33,12 @@ public class TreeMojoMaxDepthTest extends BaseTreeMojoTest {
         MojoExecution execution = mojoRule.newMojoExecution("tree");
         testedTreeMojo = (TreeMojo) mojoRule.lookupConfiguredMojo(session, execution);
         assertThat(testedTreeMojo, notNullValue());
-
         testedTreeMojo.setLog(mockedLog);
 
-        mojoRule.executeMojo(session, project, execution);
+        // run test
+        testedTreeMojo.execute();
 
+        // verify
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         verify(mockedLog, atLeastOnce()).info(captor.capture());
 
