@@ -195,7 +195,7 @@ public class FullDependenciesGraphBuilder {
      * @return The converted aether repository.
      */
     private RemoteRepository convert(ArtifactRepository mavenRepository) {
-        return new RemoteRepository.Builder(mavenRepository.getId(), mavenRepository.getBasedir(), mavenRepository.getUrl()).build();
+        return new RemoteRepository.Builder(mavenRepository.getId(), mavenRepository.getLayout().getId(), mavenRepository.getUrl()).build();
     }
 
     /**
