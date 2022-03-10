@@ -43,14 +43,15 @@ public class FullDependenciesGraphBuilder {
     private final RepositorySystem repositorySystem;
     private final RepositorySystemSession repositorySystemSession;
     private final List<String> scopes;
+    private final boolean skipDuplicates;
 
-    public FullDependenciesGraphBuilder(MavenProject aProject, Log mavenLog, List<String> someScopes) {
+    public FullDependenciesGraphBuilder(MavenProject aProject, Log mavenLog, List<String> someScopes, boolean shouldSkipDuplicates) {
         super();
         project = aProject;
         log = mavenLog;
         scopes = someScopes;
-        DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
-        repositorySystem = newRepositorySystem(locator);
+        skipDuplicates = shouldSkipDuplicates;
+        repositorySystem = newRepositorySystem(MavenRepositorySystemUtils.newServiceLocator());
         repositorySystemSession = newSession(repositorySystem);
     }
 
@@ -77,7 +78,7 @@ public class FullDependenciesGraphBuilder {
         for (Dependency currentDependency : getDependencies(anArtifact)) {
             if (scopes.isEmpty() || scopes.contains(Optional.ofNullable(currentDependency.getScope()).orElse("compile"))) {
                 boolean hasBeenAdded = visitedDependencies.add(currentDependency);
-                if (hasBeenAdded) {
+                if (!skipDuplicates && hasBeenAdded) {
                     childNodes.add(createNode(toArtifact(currentDependency), artifactNode, visitedDependencies, theMaxResolutionDepth - 1));
                 } else {
                     childNodes.add(createSkippedNode(currentDependency, artifactNode, visitedDependencies));

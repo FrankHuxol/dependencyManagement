@@ -25,6 +25,9 @@
             <plugin>
                 <groupId>de.ebp</groupId>
                 <artifactId>dependencymanagement-maven-plugin</artifactId>
+                <configuration>
+                    <skipDuplicates>true</skipDuplicates>
+                </configuration>
             </plugin>
         </plugins>
     </build>

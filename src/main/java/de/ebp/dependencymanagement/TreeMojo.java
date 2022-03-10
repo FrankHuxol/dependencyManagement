@@ -37,6 +37,9 @@ public class TreeMojo extends AbstractMojo {
     @Parameter(property = "tree.scopes")
     private List<String> scopes;
 
+    @Parameter(property = "tree.skipDuplicates", defaultValue = "false")
+    private boolean skipDuplicates;
+
     @Override
     public void execute() {
         // The reason to first create the graph and then log it is to get the log output consecutive without interruptions due to downloading more artifacts
@@ -54,7 +57,7 @@ public class TreeMojo extends AbstractMojo {
     private DependencyNode createDependenciesGraph() {
         int maxResolutionDepth = maxDepth;
         ProjectArtifact projectArtifact = new ProjectArtifact(project);
-        FullDependenciesGraphBuilder graphBuilder = new FullDependenciesGraphBuilder(project, getLog(), scopes);
+        FullDependenciesGraphBuilder graphBuilder = new FullDependenciesGraphBuilder(project, getLog(), scopes, skipDuplicates);
 
         Set<Dependency> visitedDependencies = new TreeSet<>(new DependencyComparator());
 
