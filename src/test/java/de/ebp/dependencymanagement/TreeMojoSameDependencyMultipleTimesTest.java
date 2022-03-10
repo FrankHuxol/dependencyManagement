@@ -15,7 +15,7 @@ public class TreeMojoSameDependencyMultipleTimesTest extends BaseTreeMojoTest {
         verify(inOrder -> {
             inOrder.verify(mockedLog).info("Gathering dependency tree of dependencyManagement section. May take a while");
             inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
-            inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test-sameDependencyMultipleTimes-differentVersion:pom:0.0.1-SNAPSHOT");
+            inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test-sameDependencyMultipleTimes-sameVersion:pom:0.0.1-SNAPSHOT");
             inOrder.verify(mockedLog).info("+- junit:junit:jar:4.13.2:test");
             inOrder.verify(mockedLog).info("|  +- org.hamcrest:hamcrest-core:jar:1.3:compile");
             inOrder.verify(mockedLog).info("|  \\- org.hamcrest:hamcrest-library:jar:1.3:test");
