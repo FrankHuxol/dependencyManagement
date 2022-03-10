@@ -32,16 +32,16 @@ Ensures, that the project is only using dependencies defined in the dependency m
 # Getting started
 
 Add to pom:
-```
-	<build>
-		<plugins>
-			<plugin>
-			    <groupId>de.ebp</groupId>
-			    <artifactId>dependencymanagement-maven-plugin</artifactId>
-			    <version>1.0.0</version>
-			</plugin>
-		</plugins>
-	</build>
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>de.ebp</groupId>
+            <artifactId>dependencymanagement-maven-plugin</artifactId>
+            <version>1.0.0</version>
+        </plugin>
+    </plugins>
+</build>
 ```
 
 Run one of the goals:
@@ -54,14 +54,15 @@ mvn dependencymanagement:tree
 
 ## tree
 ### Example config
-`<configuration>
+```xml
+<configuration>
     <maxDepth>3</maxDepth>
     <scopes>
         <scope>compile</scope>
     </scopes>
     <skipDuplicates>true</skipDuplicates>
 </configuration>
-`
+```
 
 | Parameter | Example Values | Description |
 |---|---|---|
