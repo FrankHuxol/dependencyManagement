@@ -1,0 +1,40 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>de.ebp</groupId>
+    <artifactId>tree-mojo-test-sameDependencyMultipleTimes-differentVersion</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <!-- no parent, we want our own dependencies here -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.13.2</version>
+                <scope>test</scope>
+            </dependency>
+			<dependency>
+				<groupId>com.google.code.gson</groupId>
+				<artifactId>gson</artifactId>
+				<version>2.9.0</version>
+			</dependency>
+            <dependency>
+                <groupId>io.gsonfire</groupId>
+                <artifactId>gson-fire</artifactId>
+                <version>1.8.5</version>
+                <!-- has a transitive dependency to gson 2.8.6 -->
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>de.ebp</groupId>
+                <artifactId>dependencymanagement-maven-plugin</artifactId>
+                <configuration>
+                    <skipDuplicates>true</skipDuplicates>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
