@@ -32,16 +32,16 @@ Ensures, that the project is only using dependencies defined in the dependency m
 # Getting started
 
 Add to pom:
-```
-	<build>
-		<plugins>
-			<plugin>
-			    <groupId>de.ebp</groupId>
-			    <artifactId>dependencymanagement-maven-plugin</artifactId>
-			    <version>1.0.0</version>
-			</plugin>
-		</plugins>
-	</build>
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>de.ebp</groupId>
+            <artifactId>dependencymanagement-maven-plugin</artifactId>
+            <version>1.0.0</version>
+        </plugin>
+    </plugins>
+</build>
 ```
 
 Run one of the goals:
@@ -50,6 +50,25 @@ mvn dependencymanagement:enforce
 mvn dependencymanagement:tree
 ```
 
+# Configuration
+
+## tree
+### Example config
+```xml
+<configuration>
+    <maxDepth>3</maxDepth>
+    <scopes>
+        <scope>compile</scope>
+    </scopes>
+    <skipDuplicates>true</skipDuplicates>
+</configuration>
+```
+### Description
+| Parameter | Example Values | Description |
+|---|---|---|
+| maxDepth| -1, 1, 50 | Defines the maximum depth to check transitive dependencies for. By default, there is no maximum (-1) |
+| scopes| compile, provided, runtime, test, system, import | Can be used to restrict the scopes to investigate. By default, all scopes are taken into account |
+| skipDuplicates | true, false | Defines, whether duplicate dependencies are fully reported (their dependencies get reported multiple times) or if their dependencies are skipped. Can be used in cases of cyclic dependencies |
 
 
 # Authors
