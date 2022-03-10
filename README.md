@@ -63,7 +63,7 @@ mvn dependencymanagement:tree
     <skipDuplicates>true</skipDuplicates>
 </configuration>
 ```
-
+### Description
 | Parameter | Example Values | Description |
 |---|---|---|
 | maxDepth| -1, 1, 50 | Defines the maximum depth to check transitive dependencies for. By default, there is no maximum (-1) |
