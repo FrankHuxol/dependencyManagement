@@ -1,6 +1,7 @@
 package de.ebp.dependencymanagement.graph;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class FullDependenciesGraphBuilder {
 
@@ -59,10 +61,11 @@ public class FullDependenciesGraphBuilder {
      * @param anArtifact            the Artifact to create a dependency node for
      * @param theParent             The parent to create the node for
      * @param theScope              The scope to create the node for
+     * @param visitedDependencies   The already visited dependencies
      * @param theMaxResolutionDepth The maximum resolution depth to use
      * @return A dependency node for the given parameters
      */
-    public DependencyNode createNode(Artifact anArtifact, DependencyNode theParent, String theScope,
+    public DependencyNode createNode(Artifact anArtifact, DependencyNode theParent, String theScope, Set<Dependency> visitedDependencies,
                                      int theMaxResolutionDepth) {
         DefaultDependencyNode artifactNode = new DefaultDependencyNode(theParent, anArtifact, null, theScope, null);
         if (theMaxResolutionDepth == 0) {
@@ -73,11 +76,39 @@ public class FullDependenciesGraphBuilder {
         List<DependencyNode> childNodes = new ArrayList<>();
         for (Dependency currentDependency : getDependencies(anArtifact)) {
             if (scopes.isEmpty() || scopes.contains(Optional.ofNullable(currentDependency.getScope()).orElse("compile"))) {
-                childNodes.add(createNode(toArtifact(currentDependency), artifactNode, theMaxResolutionDepth - 1));
+                boolean hasBeenAdded = visitedDependencies.add(currentDependency);
+                if (hasBeenAdded) {
+                    childNodes.add(createNode(toArtifact(currentDependency), artifactNode, visitedDependencies, theMaxResolutionDepth - 1));
+                } else {
+                    childNodes.add(createSkippedNode(currentDependency, artifactNode, visitedDependencies));
+                }
             }
         }
         artifactNode.setChildren(Collections.unmodifiableList(childNodes));
         return artifactNode;
+    }
+
+    /**
+     * Creates a node for the graph containing information that the dependencies of that dependency might be skipped
+     *
+     * @param aDependency         The dependency to create the node for
+     * @param theParent           The parent to put this on
+     * @param visitedDependencies The already visited dependencies
+     * @return A node without more dependencies resolved
+     */
+    private DependencyNode createSkippedNode(Dependency aDependency, DefaultDependencyNode theParent, Set<Dependency> visitedDependencies) {
+        // create node for the dependency itself, but don't resolve anything
+        DependencyNode dependencyNode = createNode(aDependency, theParent, visitedDependencies, 0);
+        if (getDependencies(toArtifact(aDependency)).isEmpty()) {
+            // this dependency does not have further dependencies
+            return dependencyNode;
+        }
+        // if this dependency has further dependencies, we skip them
+        DefaultArtifact skippedArtifact = new DefaultArtifact("skipped already printed dependencies", "", "-", "", "", "", null);
+        DefaultDependencyNode skippedNode = new DefaultDependencyNode(dependencyNode, skippedArtifact, null, null, null);
+        skippedNode.setChildren(new ArrayList<>());
+        ((DefaultDependencyNode) dependencyNode).setChildren(Lists.newArrayList(skippedNode));
+        return dependencyNode;
     }
 
     /**
@@ -86,11 +117,12 @@ public class FullDependenciesGraphBuilder {
      *
      * @param anArtifact            The artifact to create the node for
      * @param theParent             The parent to create the node for
+     * @param visitedDependencies The already visited dependencies
      * @param theMaxResolutionDepth The maximum resolution depth to use
      * @return A dependency node for the given parameters
      */
-    public DependencyNode createNode(Artifact anArtifact, DependencyNode theParent, int theMaxResolutionDepth) {
-        return createNode(anArtifact, theParent, null, theMaxResolutionDepth);
+    public DependencyNode createNode(Artifact anArtifact, DependencyNode theParent, Set<Dependency> visitedDependencies, int theMaxResolutionDepth) {
+        return createNode(anArtifact, theParent, null, visitedDependencies, theMaxResolutionDepth);
     }
 
     /**
@@ -99,11 +131,12 @@ public class FullDependenciesGraphBuilder {
      *
      * @param aDependency           The dependency to create the node for
      * @param theParent             The parent to create the node for
+     * @param visitedDependencies The already visited dependencies
      * @param theMaxResolutionDepth Specifies the max depth for resolution
      * @return A dependency node for the given parameters
      */
-    public DependencyNode createNode(Dependency aDependency, DependencyNode theParent, int theMaxResolutionDepth) {
-        return this.createNode(toArtifact(aDependency), theParent, theMaxResolutionDepth);
+    public DependencyNode createNode(Dependency aDependency, DependencyNode theParent, Set<Dependency> visitedDependencies, int theMaxResolutionDepth) {
+        return this.createNode(toArtifact(aDependency), theParent, visitedDependencies, theMaxResolutionDepth);
     }
 
     /**

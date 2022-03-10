@@ -22,7 +22,7 @@ public class TreeMojoSameDependencyMultipleTimesTest extends BaseTreeMojoTest {
             inOrder.verify(mockedLog).info("|     \\- org.hamcrest:hamcrest-core:jar:1.3:compile");
             inOrder.verify(mockedLog).info("\\- com.google.code.gson:gson:jar:2.9.0:compile");
             inOrder.verify(mockedLog).info("   \\- junit:junit:jar:4.13.2:test");
-            inOrder.verify(mockedLog).info("      +- omitted duplicates");
+            inOrder.verify(mockedLog).info("      \\- skipped already printed dependencies:::-:");
             inOrder.verifyNoMoreInteractions();
         });
     }

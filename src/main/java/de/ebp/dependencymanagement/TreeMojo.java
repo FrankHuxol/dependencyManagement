@@ -2,6 +2,7 @@ package de.ebp.dependencymanagement;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
+import de.ebp.dependencymanagement.dependency.DependencyComparator;
 import de.ebp.dependencymanagement.graph.FullDependenciesGraphBuilder;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
@@ -21,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 
 @Mojo(name = "tree", requiresDependencyResolution = ResolutionScope.TEST)
 public class TreeMojo extends AbstractMojo {
@@ -53,8 +56,10 @@ public class TreeMojo extends AbstractMojo {
         ProjectArtifact projectArtifact = new ProjectArtifact(project);
         FullDependenciesGraphBuilder graphBuilder = new FullDependenciesGraphBuilder(project, getLog(), scopes);
 
+        Set<Dependency> visitedDependencies = new TreeSet<>(new DependencyComparator());
+
         // create root node, but do not resolve anything
-        DependencyNode projectNode = graphBuilder.createNode(projectArtifact, null, 0);
+        DependencyNode projectNode = graphBuilder.createNode(projectArtifact, null, visitedDependencies, 0);
 
         // now iterate over dependencymanagement section and add all
         // dependencies from there
@@ -62,7 +67,8 @@ public class TreeMojo extends AbstractMojo {
         if (maxResolutionDepth != 0) {
             for (Dependency currentDependency : project.getDependencyManagement().getDependencies()) {
                 if (scopes.isEmpty() || scopes.contains(Optional.ofNullable(currentDependency.getScope()).orElse("compile"))) {
-                    childNodes.add(graphBuilder.createNode(currentDependency, projectNode, maxResolutionDepth - 1));
+                    visitedDependencies.add(currentDependency);
+                    childNodes.add(graphBuilder.createNode(currentDependency, projectNode, visitedDependencies, maxResolutionDepth - 1));
                 }
             }
         }
