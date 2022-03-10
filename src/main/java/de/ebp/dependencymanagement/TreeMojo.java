@@ -37,6 +37,7 @@ public class TreeMojo extends AbstractMojo {
     @Override
     public void execute() {
         // The reason to first create the graph and then log it is to get the log output consecutive without interruptions due to downloading more artifacts
+        getLog().info("Gathering dependency tree of dependencyManagement section. May take a while");
         DependencyNode projectNode = createDependenciesGraph();
 
         logDependencies(projectNode);
