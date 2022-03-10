@@ -13,6 +13,7 @@ public class TreeMojoMaxDepthTest extends BaseTreeMojoTest {
 
         // verify
         verify(inOrder -> {
+            inOrder.verify(mockedLog).info("Gathering dependency tree of dependencyManagement section. May take a while");
             inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
             inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test-depth0:pom:0.0.1-SNAPSHOT");
             inOrder.verifyNoMoreInteractions();
@@ -28,6 +29,7 @@ public class TreeMojoMaxDepthTest extends BaseTreeMojoTest {
 
         // verify
         verify(inOrder -> {
+            inOrder.verify(mockedLog).info("Gathering dependency tree of dependencyManagement section. May take a while");
             inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
             inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test-depth1:pom:0.0.1-SNAPSHOT");
             inOrder.verify(mockedLog).info("+- tech.units:indriya:jar:2.1.3:compile");
@@ -46,6 +48,7 @@ public class TreeMojoMaxDepthTest extends BaseTreeMojoTest {
 
         // verify
         verify(inOrder -> {
+            inOrder.verify(mockedLog).info("Gathering dependency tree of dependencyManagement section. May take a while");
             inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
             inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test-depth2:pom:0.0.1-SNAPSHOT");
             inOrder.verify(mockedLog).info("+- tech.units:indriya:jar:2.1.3:compile");
@@ -80,6 +83,7 @@ public class TreeMojoMaxDepthTest extends BaseTreeMojoTest {
 
         // verify
         verify(inOrder -> {
+            inOrder.verify(mockedLog).info("Gathering dependency tree of dependencyManagement section. May take a while");
             inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
             inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test-depth3:pom:0.0.1-SNAPSHOT");
             inOrder.verify(mockedLog).info("+- tech.units:indriya:jar:2.1.3:compile");
@@ -116,6 +120,7 @@ public class TreeMojoMaxDepthTest extends BaseTreeMojoTest {
         // verify
         verify(inOrder -> {
             // actually the very same as 3
+            inOrder.verify(mockedLog).info("Gathering dependency tree of dependencyManagement section. May take a while");
             inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
             inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test-depth4:pom:0.0.1-SNAPSHOT");
             inOrder.verify(mockedLog).info("+- tech.units:indriya:jar:2.1.3:compile");
@@ -152,6 +157,7 @@ public class TreeMojoMaxDepthTest extends BaseTreeMojoTest {
         // verify
         verify(inOrder -> {
             // actually the very same as 3
+            inOrder.verify(mockedLog).info("Gathering dependency tree of dependencyManagement section. May take a while");
             inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
             inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test-depthMinus1:pom:0.0.1-SNAPSHOT");
             inOrder.verify(mockedLog).info("+- tech.units:indriya:jar:2.1.3:compile");

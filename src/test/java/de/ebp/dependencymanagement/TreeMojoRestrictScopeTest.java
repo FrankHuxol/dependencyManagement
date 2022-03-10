@@ -13,6 +13,7 @@ public class TreeMojoRestrictScopeTest extends BaseTreeMojoTest {
 
         // verify
         verify(inOrder -> {
+            inOrder.verify(mockedLog).info("Gathering dependency tree of dependencyManagement section. May take a while");
             inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
             inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test-scopeCompileOnly:pom:0.0.1-SNAPSHOT");
             inOrder.verify(mockedLog).info("+- tech.units:indriya:jar:2.1.3:compile");
@@ -34,7 +35,7 @@ public class TreeMojoRestrictScopeTest extends BaseTreeMojoTest {
 
         // verify
         verify(inOrder -> {
-            // actually the very same as 3
+            inOrder.verify(mockedLog).info("Gathering dependency tree of dependencyManagement section. May take a while");
             inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
             inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test-scopeCompileAndTest:pom:0.0.1-SNAPSHOT");
             inOrder.verify(mockedLog).info("+- tech.units:indriya:jar:2.1.3:compile");
@@ -67,7 +68,7 @@ public class TreeMojoRestrictScopeTest extends BaseTreeMojoTest {
 
         // verify
         verify(inOrder -> {
-            // actually the very same as 3
+            inOrder.verify(mockedLog).info("Gathering dependency tree of dependencyManagement section. May take a while");
             inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
             inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test-scopeTestOnly:pom:0.0.1-SNAPSHOT");
             inOrder.verify(mockedLog).info("\\- junit:junit:jar:4.13.2:test");
