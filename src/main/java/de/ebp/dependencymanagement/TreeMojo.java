@@ -68,11 +68,14 @@ public class TreeMojo extends AbstractMojo {
         // dependencies from there
         List<DependencyNode> childNodes = new ArrayList<>();
         if (maxResolutionDepth != 0) {
+            int currentDependencyNumber = 1;
             for (Dependency currentDependency : project.getDependencyManagement().getDependencies()) {
+                getLog().info("Gathering dependency tree for " + currentDependency + " (" + currentDependencyNumber + "/" + project.getDependencyManagement().getDependencies().size() + ")");
                 if (scopes.isEmpty() || scopes.contains(Optional.ofNullable(currentDependency.getScope()).orElse("compile"))) {
                     visitedDependencies.add(currentDependency);
                     childNodes.add(graphBuilder.createNode(currentDependency, projectNode, visitedDependencies, maxResolutionDepth - 1));
                 }
+                currentDependencyNumber++;
             }
         }
         ((DefaultDependencyNode) projectNode).setChildren(Collections.unmodifiableList(childNodes));
