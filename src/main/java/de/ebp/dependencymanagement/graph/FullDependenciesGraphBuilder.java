@@ -175,11 +175,7 @@ public class FullDependenciesGraphBuilder {
             }
 
             return dependencies;
-        } catch (ArtifactDescriptorException e) {
-            if (e.getCause() != null && e.getCause().getCause() instanceof ArtifactNotFoundException) {
-                //ignore
-                return new ArrayList<>();
-            }
+        } catch (ArtifactDescriptorException | IllegalArgumentException e) {
             log.error("Could not retrieve dependencies for artifact " + anArtifact, e);
         }
         return new ArrayList<>();
