@@ -35,11 +35,7 @@ public class TreeMojoSameDependencyMultipleTimesTest extends BaseTreeMojoTest {
             inOrder.verify(mockedLog).info("|  +- androidx.lifecycle:lifecycle-viewmodel-savedstate:jar:2.3.1:compile");
             inOrder.verify(mockedLog).info("|  \\- javax.inject:javax.inject:jar:1:compile");
             inOrder.verify(mockedLog).info("\\- com.google.dagger:dagger-android:jar:2.41:compile");
-            inOrder.verify(mockedLog).info("   +- com.google.dagger:dagger:jar:2.41:compile");
-            inOrder.verify(mockedLog).info("   |  \\- skipped already printed dependencies:::-:");
-            inOrder.verify(mockedLog).info("   +- com.google.dagger:dagger-lint-aar:jar:2.41:compile");
-            inOrder.verify(mockedLog).info("   +- androidx.annotation:annotation:jar:1.2.0:compile");
-            inOrder.verify(mockedLog).info("   \\- javax.inject:javax.inject:jar:1:compile");
+            inOrder.verify(mockedLog).info("   \\- skipped already printed dependencies:::-:");
             inOrder.verifyNoMoreInteractions();
         });
     }

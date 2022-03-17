@@ -73,10 +73,15 @@ public class DependenciesTree {
         List<Dependency> dependenciesInDependencyManagement = project.getDependencyManagement().getDependencies();
         for (Dependency currentDependency : dependenciesInDependencyManagement) {
             log.info("Gathering dependency tree for " + currentDependency + " (" + currentDependencyNumber + "/" + dependenciesInDependencyManagement.size() + ")");
-            alreadyVisitedDependencies.add(currentDependency);
+            boolean hasBeenAdded = alreadyVisitedDependencies.add(currentDependency);
             List<Exclusion> currentExclusions = currentDependency.getExclusions();
-            if (isValidDirectDependency(currentDependency, theResolutionOptions)) {
+            if (!isValidDirectDependency(currentDependency, theResolutionOptions)) {
+                continue;
+            }
+            if (!theResolutionOptions.skipDuplicates() || hasBeenAdded) {
                 resolvedDependencies.add(resolveDependencies(parent, currentDependency, currentExclusions, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
+            } else {
+                resolvedDependencies.add(createSkippedNode(parent, currentDependency, currentExclusions, alreadyVisitedDependencies));
             }
 
             currentDependencyNumber++;
@@ -100,7 +105,6 @@ public class DependenciesTree {
             } else {
                 resolvedDependencies.add(createSkippedNode(parent, currentDependency, currentExclusions, alreadyVisitedDependencies));
             }
-
         }
         return resolvedDependencies;
     }
