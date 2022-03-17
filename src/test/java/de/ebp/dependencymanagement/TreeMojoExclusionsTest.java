@@ -24,6 +24,7 @@ public class TreeMojoExclusionsTest extends BaseTreeMojoTest {
             inOrder.verify(mockedLog).info("   +- org.checkerframework:checker-qual:jar:3.12.0:compile");
             inOrder.verify(mockedLog).info("   +- com.google.errorprone:error_prone_annotations:jar:2.11.0:compile");
             inOrder.verify(mockedLog).info("   \\- com.google.j2objc:j2objc-annotations:jar:1.3:compile");
+            inOrder.verifyNoMoreInteractions();
         });
     }
 
