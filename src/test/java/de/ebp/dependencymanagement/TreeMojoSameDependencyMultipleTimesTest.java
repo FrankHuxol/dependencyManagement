@@ -83,4 +83,34 @@ public class TreeMojoSameDependencyMultipleTimesTest extends BaseTreeMojoTest {
             inOrder.verifyNoMoreInteractions();
         });
     }
+
+    @Test
+    public void testSingleDep() throws Exception {
+        TreeMojo testedTreeMojo = (TreeMojo) prepareMojo("src/test/resources/unit/tree-mojo/sameDependencyMultipleTimes/singleDep", "tree");
+
+        // run test
+        testedTreeMojo.execute();
+
+        // verify
+        verify(inOrder -> {
+            inOrder.verify(mockedLog).info("Gathering dependency tree of dependencyManagement section. May take a while");
+            inOrder.verify(mockedLog).info("Dependency tree of dependencymanagement configuration:");
+            inOrder.verify(mockedLog).info("de.ebp:tree-mojo-test-sameDependencyMultipleTimes-singleDep:pom:0.0.1-SNAPSHOT");
+            inOrder.verify(mockedLog).info("\\- com.fasterxml.jackson.dataformat:jackson-dataformat-xml:jar:2.13.2:compile");
+            inOrder.verify(mockedLog).info("   +- com.fasterxml.jackson.core:jackson-core:jar:2.13.2:compile");
+            inOrder.verify(mockedLog).info("   +- com.fasterxml.jackson.core:jackson-annotations:jar:2.13.2:compile");
+            inOrder.verify(mockedLog).info("   +- com.fasterxml.jackson.core:jackson-databind:jar:2.13.2:compile");
+            inOrder.verify(mockedLog).info("   |  +- com.fasterxml.jackson.core:jackson-annotations:jar:2.13.2:compile");
+            // the previous dependency has already been reported. Since it does not have any (reasonable) childs, we don't want the following printed
+            // inOrder.verify(mockedLog).info("   |  |  \\- skipped already printed dependencies:::-:");
+            inOrder.verify(mockedLog).info("   |  \\- com.fasterxml.jackson.core:jackson-core:jar:2.13.2:compile");
+            // the previous dependency has already been reported. Since it does not have any (reasonable) childs, we don't want the following printed
+            // inOrder.verify(mockedLog).info("   |     \\- skipped already printed dependencies:::-:");
+            inOrder.verify(mockedLog).info("   +- org.codehaus.woodstox:stax2-api:jar:4.2.1:compile");
+            inOrder.verify(mockedLog).info("   \\- com.fasterxml.woodstox:woodstox-core:jar:6.2.7:compile");
+            inOrder.verify(mockedLog).info("      +- org.codehaus.woodstox:stax2-api:jar:4.2.1:compile");
+            inOrder.verify(mockedLog).info("      \\- org.apache.felix:org.osgi.core:jar:1.4.0:provided");
+            inOrder.verifyNoMoreInteractions();
+        });
+    }
 }

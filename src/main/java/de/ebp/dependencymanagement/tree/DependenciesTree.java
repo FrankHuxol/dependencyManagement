@@ -34,6 +34,7 @@ import org.eclipse.aether.util.repository.DefaultProxySelector;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DependenciesTree {
 
@@ -106,10 +107,11 @@ public class DependenciesTree {
 
     private DependencyNode createSkippedNode(DependencyNode theParent, Dependency aDependency, List<Exclusion> someExclusions, Set<Dependency> visitedDependencies) {
         DependencyNode dependencyNode = createNode(theParent, toArtifact(aDependency));
-        if (getDependencies(toArtifact(aDependency), someExclusions).isEmpty()) {
+        if (getNonTestDependencies(toArtifact(aDependency), someExclusions).count() == 0) {
             // this dependency does not have further dependencies
             return dependencyNode;
         }
+
         // if this dependency has further dependencies, we skip them
         DefaultArtifact skippedArtifact = new DefaultArtifact("skipped already printed dependencies", "", "-", "", "", "", null);
         DefaultDependencyNode skippedNode = new DefaultDependencyNode(dependencyNode, skippedArtifact, null, null, null);
@@ -117,7 +119,6 @@ public class DependenciesTree {
         ((DefaultDependencyNode) dependencyNode).setChildren(Lists.newArrayList(skippedNode));
         return dependencyNode;
     }
-
 
     private DependencyNode resolveDependencies(DependencyNode parent, Dependency aDependency, List<Exclusion> someExclusions, Set<Dependency> alreadyVisitedDependencies, ResolutionOptions theResolutionOptions) {
         Artifact artifact = toArtifact(aDependency);
@@ -185,6 +186,10 @@ public class DependenciesTree {
             log.error("Could not retrieve dependencies for artifact " + anArtifact, e);
         }
         return new ArrayList<>();
+    }
+
+    private Stream<Dependency> getNonTestDependencies(Artifact anArtifact, List<Exclusion> someExclusions) {
+        return getDependencies(anArtifact, someExclusions).stream().filter(d -> !"test".equalsIgnoreCase(d.getScope()));
     }
 
     private boolean isExcluded(List<Exclusion> someExclusions, org.eclipse.aether.graph.Dependency dependency) {
