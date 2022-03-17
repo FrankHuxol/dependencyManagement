@@ -3,6 +3,7 @@ package de.ebp.dependencymanagement;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
 import de.ebp.dependencymanagement.tree.DependenciesTree;
+import de.ebp.dependencymanagement.tree.ResolutionOptions;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -48,7 +49,7 @@ public class TreeMojo extends AbstractMojo {
     private DependencyNode createDependenciesGraph() {
         DependenciesTree tree = new DependenciesTree(project, getLog());
 
-        return tree.asDependencyNode(maxDepth);
+        return tree.asDependencyNode(new ResolutionOptions(maxDepth, scopes, skipDuplicates));
     }
 
     /**

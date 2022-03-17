@@ -48,10 +48,10 @@ public class DependenciesTree {
         repositorySystemSession = newSession(repositorySystem);
     }
 
-    public DependencyNode asDependencyNode(int maxDepth) {
+    public DependencyNode asDependencyNode(ResolutionOptions theResolutionOptions) {
         DependencyNode projectNode = createProjectNode();
         Set<Dependency> alreadyVisitedDependencies = new TreeSet<>(new DependencyComparator());
-        List<DependencyNode> allDependencies = resolveDependenciesInDependencyManagement(projectNode, alreadyVisitedDependencies, maxDepth);
+        List<DependencyNode> allDependencies = resolveDependenciesInDependencyManagement(projectNode, alreadyVisitedDependencies, theResolutionOptions);
         ((DefaultDependencyNode) projectNode).setChildren(Collections.unmodifiableList(allDependencies));
         return projectNode;
     }
@@ -61,8 +61,8 @@ public class DependenciesTree {
         return createNode(null, projectArtifact);
     }
 
-    private List<DependencyNode> resolveDependenciesInDependencyManagement(DependencyNode parent, Set<Dependency> alreadyVisitedDependencies, int theRemainingDepth) {
-        if (theRemainingDepth == 0) {
+    private List<DependencyNode> resolveDependenciesInDependencyManagement(DependencyNode parent, Set<Dependency> alreadyVisitedDependencies, ResolutionOptions theResolutionOptions) {
+        if (theResolutionOptions.getMaxDepth() == 0) {
             return new ArrayList<>();
         }
         int currentDependencyNumber = 1;
@@ -73,7 +73,7 @@ public class DependenciesTree {
             alreadyVisitedDependencies.add(currentDependency);
             List<Exclusion> currentExclusions = currentDependency.getExclusions();
             if (isValidDirectDependency(currentDependency)) {
-                resolvedDependencies.add(resolveDependencies(parent, currentDependency, alreadyVisitedDependencies, theRemainingDepth - 1));
+                resolvedDependencies.add(resolveDependencies(parent, currentDependency, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
             }
 
             currentDependencyNumber++;
@@ -81,8 +81,8 @@ public class DependenciesTree {
         return resolvedDependencies;
     }
 
-    private List<DependencyNode> resolveDependencies(DependencyNode parent, List<Dependency> dependencies, Set<Dependency> alreadyVisitedDependencies, int theRemainingDepth) {
-        if (theRemainingDepth == 0) {
+    private List<DependencyNode> resolveDependencies(DependencyNode parent, List<Dependency> dependencies, Set<Dependency> alreadyVisitedDependencies, ResolutionOptions theResolutionOptions) {
+        if (theResolutionOptions.getMaxDepth() == 0) {
             return new ArrayList<>();
         }
         int currentDependencyNumber = 1;
@@ -91,7 +91,7 @@ public class DependenciesTree {
             alreadyVisitedDependencies.add(currentDependency);
             List<Exclusion> currentExclusions = currentDependency.getExclusions();
             if (isValidTransitiveDependency(currentDependency)) {
-                resolvedDependencies.add(resolveDependencies(parent, currentDependency, alreadyVisitedDependencies, theRemainingDepth - 1));
+                resolvedDependencies.add(resolveDependencies(parent, currentDependency, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
             }
 
             currentDependencyNumber++;
@@ -99,16 +99,16 @@ public class DependenciesTree {
         return resolvedDependencies;
     }
 
-    private DependencyNode resolveDependencies(DependencyNode parent, Dependency aDependency, Set<Dependency> alreadyVisitedDependencies, int theRemainingDepth) {
+    private DependencyNode resolveDependencies(DependencyNode parent, Dependency aDependency, Set<Dependency> alreadyVisitedDependencies, ResolutionOptions theResolutionOptions) {
         Artifact artifact = toArtifact(aDependency);
-        if (theRemainingDepth == 0) {
+        if (theResolutionOptions.getMaxDepth() == 0) {
             DefaultDependencyNode projectNode = new DefaultDependencyNode(parent, artifact, null, null, null);
             projectNode.setChildren(Collections.unmodifiableList(new ArrayList<>()));
             return projectNode;
         }
         List<Dependency> dependencies = getDependencies(aDependency);
         DependencyNode dependencyNode = createNode(parent, artifact);
-        ((DefaultDependencyNode) dependencyNode).setChildren(resolveDependencies(dependencyNode, dependencies, alreadyVisitedDependencies, theRemainingDepth));
+        ((DefaultDependencyNode) dependencyNode).setChildren(resolveDependencies(dependencyNode, dependencies, alreadyVisitedDependencies, theResolutionOptions));
         return dependencyNode;
     }
 
