@@ -72,7 +72,7 @@ public class DependenciesTree {
             log.info("Gathering dependency tree for " + currentDependency + " (" + currentDependencyNumber + "/" + dependenciesInDependencyManagement.size() + ")");
             alreadyVisitedDependencies.add(currentDependency);
             List<Exclusion> currentExclusions = currentDependency.getExclusions();
-            if (isValidDirectDependency(currentDependency)) {
+            if (isValidDirectDependency(currentDependency, theResolutionOptions)) {
                 resolvedDependencies.add(resolveDependencies(parent, currentDependency, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
             }
 
@@ -90,7 +90,7 @@ public class DependenciesTree {
         for (Dependency currentDependency : dependencies) {
             alreadyVisitedDependencies.add(currentDependency);
             List<Exclusion> currentExclusions = currentDependency.getExclusions();
-            if (isValidTransitiveDependency(currentDependency)) {
+            if (isValidTransitiveDependency(currentDependency, theResolutionOptions)) {
                 resolvedDependencies.add(resolveDependencies(parent, currentDependency, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
             }
 
@@ -116,12 +116,23 @@ public class DependenciesTree {
         return getDependencies(toArtifact(aDependency));
     }
 
-    private boolean isValidDirectDependency(Dependency currentDependency) {
-        return true;
+    private boolean isValidDirectDependency(Dependency aDependency, ResolutionOptions theResolutionOptions) {
+        return scopeMatches(aDependency, theResolutionOptions);
     }
 
-    private boolean isValidTransitiveDependency(Dependency currentDependency) {
-        return !Optional.ofNullable(currentDependency.getScope()).orElse("compile").equalsIgnoreCase("test");
+    private boolean scopeMatches(Dependency aDependency, ResolutionOptions theResolutionOptions) {
+        if (theResolutionOptions.getScopes().isEmpty()) {
+            return true;
+        }
+        return theResolutionOptions.getScopes().contains(Optional.ofNullable(aDependency.getScope()).orElse("compile"));
+    }
+
+    private boolean isValidTransitiveDependency(Dependency aDependency, ResolutionOptions theResolutionOptions) {
+        return !isTestDependency(aDependency) && scopeMatches(aDependency, theResolutionOptions);
+    }
+
+    private boolean isTestDependency(Dependency aDependency) {
+        return Optional.ofNullable(aDependency.getScope()).orElse("compile").equalsIgnoreCase("test");
     }
 
     private Artifact toArtifact(Dependency aDependency) {
