@@ -8,21 +8,14 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.13.2</version>
-                <scope>test</scope>
+                <groupId>si.uom</groupId>
+                <artifactId>si-units</artifactId>
+                <version>2.1</version>
             </dependency>
-			<dependency>
-				<groupId>com.google.code.gson</groupId>
-				<artifactId>gson</artifactId>
-				<version>2.9.0</version>
-			</dependency>
             <dependency>
-                <groupId>io.gsonfire</groupId>
-                <artifactId>gson-fire</artifactId>
-                <version>1.8.5</version>
-                <!-- has a transitive dependency to gson 2.8.6 -->
+                <groupId>si.uom</groupId>
+                <artifactId>si-quantity</artifactId>
+                <version>2.0.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

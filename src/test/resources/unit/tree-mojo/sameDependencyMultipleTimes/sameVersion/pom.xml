@@ -7,17 +7,16 @@
     <!-- no parent, we want our own dependencies here -->
     <dependencyManagement>
         <dependencies>
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>4.13.2</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>com.google.code.gson</groupId>
-				<artifactId>gson</artifactId>
-				<version>2.9.0</version>
-			</dependency>
+            <dependency>
+                <groupId>si.uom</groupId>
+                <artifactId>si-units</artifactId>
+                <version>2.1</version>
+            </dependency>
+            <dependency>
+                <groupId>si.uom</groupId>
+                <artifactId>si-quantity</artifactId>
+                <version>2.1</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>

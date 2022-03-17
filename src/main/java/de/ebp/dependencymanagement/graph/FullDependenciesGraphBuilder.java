@@ -75,7 +75,11 @@ public class FullDependenciesGraphBuilder {
 
         List<DependencyNode> childNodes = new ArrayList<>();
         for (Dependency currentDependency : getDependencies(anArtifact)) {
-            if (scopes.isEmpty() || scopes.contains(Optional.ofNullable(currentDependency.getScope()).orElse("compile"))) {
+            String scopeOfCurrentDependency = Optional.ofNullable(currentDependency.getScope()).orElse("compile");
+            if(scopeOfCurrentDependency.equalsIgnoreCase("test")) {
+                continue;
+            }
+            if (scopes.isEmpty() || scopes.contains(scopeOfCurrentDependency)) {
                 boolean hasBeenAdded = visitedDependencies.add(currentDependency);
                 if (!skipDuplicates || hasBeenAdded) {
                     childNodes.add(createNode(toArtifact(currentDependency), artifactNode, visitedDependencies, theMaxResolutionDepth - 1));
