@@ -81,7 +81,7 @@ public class DependenciesTree {
             if (isDuplicate) {
                 resolvedDependencies.add(createSkippedNode(parent, currentDependency, currentExclusions));
             } else {
-                resolvedDependencies.add(resolveDependencies(parent, currentDependency, currentExclusions, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
+                resolvedDependencies.add(resolveTransitiveDependencies(parent, currentDependency, currentExclusions, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
             }
 
             currentDependencyNumber++;
@@ -89,7 +89,7 @@ public class DependenciesTree {
         return resolvedDependencies;
     }
 
-    private List<DependencyNode> resolveDependencies(DependencyNode parent, List<Dependency> dependencies, Set<Dependency> alreadyVisitedDependencies, ResolutionOptions theResolutionOptions) {
+    private List<DependencyNode> resolveTransitiveDependencies(DependencyNode parent, List<Dependency> dependencies, Set<Dependency> alreadyVisitedDependencies, ResolutionOptions theResolutionOptions) {
         if (theResolutionOptions.getMaxDepth() == 0) {
             return new ArrayList<>();
         }
@@ -104,7 +104,7 @@ public class DependenciesTree {
             if (isDuplicate) {
                 resolvedDependencies.add(createSkippedNode(parent, currentDependency, currentExclusions));
             } else {
-                resolvedDependencies.add(resolveDependencies(parent, currentDependency, currentExclusions, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
+                resolvedDependencies.add(resolveTransitiveDependencies(parent, currentDependency, currentExclusions, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
             }
         }
         return resolvedDependencies;
@@ -125,7 +125,7 @@ public class DependenciesTree {
         return dependencyNode;
     }
 
-    private DependencyNode resolveDependencies(DependencyNode parent, Dependency aDependency, List<Exclusion> someExclusions, Set<Dependency> alreadyVisitedDependencies, ResolutionOptions theResolutionOptions) {
+    private DependencyNode resolveTransitiveDependencies(DependencyNode parent, Dependency aDependency, List<Exclusion> someExclusions, Set<Dependency> alreadyVisitedDependencies, ResolutionOptions theResolutionOptions) {
         Artifact artifact = toArtifact(aDependency);
         if (theResolutionOptions.getMaxDepth() == 0) {
             DefaultDependencyNode projectNode = new DefaultDependencyNode(parent, artifact, null, null, null);
@@ -134,7 +134,7 @@ public class DependenciesTree {
         }
         List<Dependency> dependencies = getDependencies(aDependency, someExclusions);
         DependencyNode dependencyNode = createNode(parent, artifact);
-        ((DefaultDependencyNode) dependencyNode).setChildren(resolveDependencies(dependencyNode, dependencies, alreadyVisitedDependencies, theResolutionOptions));
+        ((DefaultDependencyNode) dependencyNode).setChildren(resolveTransitiveDependencies(dependencyNode, dependencies, alreadyVisitedDependencies, theResolutionOptions));
         return dependencyNode;
     }
 
