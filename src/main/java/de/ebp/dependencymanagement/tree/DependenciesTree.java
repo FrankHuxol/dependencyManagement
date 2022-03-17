@@ -33,6 +33,7 @@ import org.eclipse.aether.util.repository.DefaultMirrorSelector;
 import org.eclipse.aether.util.repository.DefaultProxySelector;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class DependenciesTree {
 
@@ -74,7 +75,7 @@ public class DependenciesTree {
             alreadyVisitedDependencies.add(currentDependency);
             List<Exclusion> currentExclusions = currentDependency.getExclusions();
             if (isValidDirectDependency(currentDependency, theResolutionOptions)) {
-                resolvedDependencies.add(resolveDependencies(parent, currentDependency, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
+                resolvedDependencies.add(resolveDependencies(parent, currentDependency, currentExclusions, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
             }
 
             currentDependencyNumber++;
@@ -94,18 +95,18 @@ public class DependenciesTree {
             List<Exclusion> currentExclusions = currentDependency.getExclusions();
             boolean hasBeenAdded = alreadyVisitedDependencies.add(currentDependency);
             if (!theResolutionOptions.skipDuplicates() || hasBeenAdded) {
-                resolvedDependencies.add(resolveDependencies(parent, currentDependency, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
+                resolvedDependencies.add(resolveDependencies(parent, currentDependency, currentExclusions, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
             } else {
-                resolvedDependencies.add(createSkippedNode(parent, currentDependency, alreadyVisitedDependencies));
+                resolvedDependencies.add(createSkippedNode(parent, currentDependency, currentExclusions, alreadyVisitedDependencies));
             }
 
         }
         return resolvedDependencies;
     }
 
-    private DependencyNode createSkippedNode(DependencyNode theParent, Dependency aDependency, Set<Dependency> visitedDependencies) {
+    private DependencyNode createSkippedNode(DependencyNode theParent, Dependency aDependency, List<Exclusion> someExclusions, Set<Dependency> visitedDependencies) {
         DependencyNode dependencyNode = createNode(theParent, toArtifact(aDependency));
-        if (getDependencies(toArtifact(aDependency)).isEmpty()) {
+        if (getDependencies(toArtifact(aDependency), someExclusions).isEmpty()) {
             // this dependency does not have further dependencies
             return dependencyNode;
         }
@@ -118,21 +119,21 @@ public class DependenciesTree {
     }
 
 
-    private DependencyNode resolveDependencies(DependencyNode parent, Dependency aDependency, Set<Dependency> alreadyVisitedDependencies, ResolutionOptions theResolutionOptions) {
+    private DependencyNode resolveDependencies(DependencyNode parent, Dependency aDependency, List<Exclusion> someExclusions, Set<Dependency> alreadyVisitedDependencies, ResolutionOptions theResolutionOptions) {
         Artifact artifact = toArtifact(aDependency);
         if (theResolutionOptions.getMaxDepth() == 0) {
             DefaultDependencyNode projectNode = new DefaultDependencyNode(parent, artifact, null, null, null);
             projectNode.setChildren(Collections.unmodifiableList(new ArrayList<>()));
             return projectNode;
         }
-        List<Dependency> dependencies = getDependencies(aDependency);
+        List<Dependency> dependencies = getDependencies(aDependency, someExclusions);
         DependencyNode dependencyNode = createNode(parent, artifact);
         ((DefaultDependencyNode) dependencyNode).setChildren(resolveDependencies(dependencyNode, dependencies, alreadyVisitedDependencies, theResolutionOptions));
         return dependencyNode;
     }
 
-    private List<Dependency> getDependencies(Dependency aDependency) {
-        return getDependencies(toArtifact(aDependency));
+    private List<Dependency> getDependencies(Dependency aDependency, List<Exclusion> someExclusions) {
+        return getDependencies(toArtifact(aDependency), someExclusions);
     }
 
     private boolean isValidDirectDependency(Dependency aDependency, ResolutionOptions theResolutionOptions) {
@@ -165,7 +166,7 @@ public class DependenciesTree {
                 type.orElse(new Dependency().getType()), classifier.orElse(""), null);
     }
 
-    private List<Dependency> getDependencies(Artifact anArtifact) {
+    private List<Dependency> getDependencies(Artifact anArtifact, List<Exclusion> someExclusions) {
         try {
             org.eclipse.aether.artifact.Artifact artifact = convert(anArtifact);
             ArtifactDescriptorRequest request = new ArtifactDescriptorRequest(artifact, convert(project.getRemoteArtifactRepositories()), null);
@@ -173,7 +174,10 @@ public class DependenciesTree {
 
             List<Dependency> dependencies = new ArrayList<>();
             for (org.eclipse.aether.graph.Dependency dependency : result.getDependencies()) {
-                dependencies.add(convert(dependency));
+                boolean excluded = isExcluded(someExclusions, dependency);
+                if (!excluded) {
+                    dependencies.add(convert(dependency));
+                }
             }
 
             return dependencies;
@@ -181,6 +185,10 @@ public class DependenciesTree {
             log.error("Could not retrieve dependencies for artifact " + anArtifact, e);
         }
         return new ArrayList<>();
+    }
+
+    private boolean isExcluded(List<Exclusion> someExclusions, org.eclipse.aether.graph.Dependency dependency) {
+        return someExclusions.stream().anyMatch(exclusion -> exclusion.getGroupId().equalsIgnoreCase(dependency.getArtifact().getGroupId()) && exclusion.getArtifactId().equalsIgnoreCase(dependency.getArtifact().getArtifactId()));
     }
 
 
