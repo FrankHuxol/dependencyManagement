@@ -88,17 +88,19 @@ public class TreeMojo extends AbstractMojo {
      * @param theProjectNode The node, which should be logged
      */
     private void logDependencies(DependencyNode theProjectNode) {
-        Writer writer = new StringWriter();
-        SerializingDependencyNodeVisitor v = new SerializingDependencyNodeVisitor(writer,
-                SerializingDependencyNodeVisitor.STANDARD_TOKENS);
-
-        theProjectNode.accept(v);
-
-        Iterable<String> singleLines = Splitter.on(Objects.requireNonNull(StandardSystemProperty.LINE_SEPARATOR.value())).omitEmptyStrings()
-                .split(writer.toString());
+        Iterable<String> singleLines = collectLogItems(theProjectNode);
         getLog().info("Dependency tree of dependencymanagement configuration:");
         for (String singleLine : singleLines) {
             getLog().info(singleLine);
         }
+    }
+
+    private Iterable<String> collectLogItems(DependencyNode theProjectNode) {
+        Writer writer = new StringWriter();
+        SerializingDependencyNodeVisitor visitor = new SerializingDependencyNodeVisitor(writer,
+                SerializingDependencyNodeVisitor.STANDARD_TOKENS);
+        theProjectNode.accept(visitor);
+        return Splitter.on(Objects.requireNonNull(StandardSystemProperty.LINE_SEPARATOR.value())).omitEmptyStrings()
+                .split(writer.toString());
     }
 }
