@@ -90,9 +90,6 @@ public class DependenciesTree {
     }
 
     private List<DependencyNode> resolveTransitiveDependencies(DependencyNode parent, List<Dependency> dependencies, Set<Dependency> alreadyVisitedDependencies, ResolutionOptions theResolutionOptions) {
-        if (theResolutionOptions.getMaxDepth() == 0) {
-            return new ArrayList<>();
-        }
         List<DependencyNode> resolvedDependencies = new ArrayList<>();
         for (Dependency currentDependency : dependencies) {
             if (!isValidTransitiveDependency(currentDependency, theResolutionOptions)) {
