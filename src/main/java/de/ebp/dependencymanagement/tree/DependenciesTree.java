@@ -1,13 +1,16 @@
-package de.ebp.dependencymanagement.graph;
+package de.ebp.dependencymanagement.tree;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import de.ebp.dependencymanagement.dependency.DependencyComparator;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Exclusion;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.artifact.ProjectArtifact;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.apache.maven.shared.dependency.graph.DependencyNode;
 import org.apache.maven.shared.dependency.graph.internal.DefaultDependencyNode;
@@ -29,84 +32,88 @@ import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.repository.DefaultMirrorSelector;
 import org.eclipse.aether.util.repository.DefaultProxySelector;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Stream;
 
-public class FullDependenciesGraphBuilder {
+public class DependenciesTree {
 
     private final MavenProject project;
     private final Log log;
     private final RepositorySystem repositorySystem;
     private final RepositorySystemSession repositorySystemSession;
-    private final List<String> scopes;
-    private final boolean skipDuplicates;
 
-    public FullDependenciesGraphBuilder(MavenProject aProject, Log mavenLog, List<String> someScopes, boolean shouldSkipDuplicates) {
+    public DependenciesTree(MavenProject aProject, Log mavenLog) {
         super();
         project = aProject;
         log = mavenLog;
-        scopes = someScopes;
-        skipDuplicates = shouldSkipDuplicates;
         repositorySystem = newRepositorySystem(MavenRepositorySystemUtils.newServiceLocator());
         repositorySystemSession = newSession(repositorySystem);
     }
 
-    /**
-     * Creates a node for the provided artifact, using the provided node as
-     * parent.
-     *
-     * @param anArtifact            the Artifact to create a dependency node for
-     * @param theParent             The parent to create the node for
-     * @param theScope              The scope to create the node for
-     * @param visitedDependencies   The already visited dependencies
-     * @param theMaxResolutionDepth The maximum resolution depth to use
-     * @return A dependency node for the given parameters
-     */
-    public DependencyNode createNode(Artifact anArtifact, DependencyNode theParent, String theScope, Set<Dependency> visitedDependencies,
-                                     int theMaxResolutionDepth) {
-        DefaultDependencyNode artifactNode = new DefaultDependencyNode(theParent, anArtifact, null, theScope, null);
-        if (theMaxResolutionDepth == 0) {
-            artifactNode.setChildren(Collections.unmodifiableList(new ArrayList<>()));
-            return artifactNode;
-        }
-
-        List<DependencyNode> childNodes = new ArrayList<>();
-        for (Dependency currentDependency : getDependencies(anArtifact)) {
-            String scopeOfCurrentDependency = Optional.ofNullable(currentDependency.getScope()).orElse("compile");
-            if(scopeOfCurrentDependency.equalsIgnoreCase("test")) {
-                continue;
-            }
-            if (scopes.isEmpty() || scopes.contains(scopeOfCurrentDependency)) {
-                boolean hasBeenAdded = visitedDependencies.add(currentDependency);
-                if (!skipDuplicates || hasBeenAdded) {
-                    childNodes.add(createNode(toArtifact(currentDependency), artifactNode, visitedDependencies, theMaxResolutionDepth - 1));
-                } else {
-                    childNodes.add(createSkippedNode(currentDependency, artifactNode, visitedDependencies));
-                }
-            }
-        }
-        artifactNode.setChildren(Collections.unmodifiableList(childNodes));
-        return artifactNode;
+    public DependencyNode asDependencyNode(ResolutionOptions theResolutionOptions) {
+        DependencyNode projectNode = createProjectNode();
+        Set<Dependency> alreadyVisitedDependencies = new TreeSet<>(new DependencyComparator());
+        List<DependencyNode> allDependencies = resolveDependenciesInDependencyManagement(projectNode, alreadyVisitedDependencies, theResolutionOptions);
+        ((DefaultDependencyNode) projectNode).setChildren(Collections.unmodifiableList(allDependencies));
+        return projectNode;
     }
 
-    /**
-     * Creates a node for the graph containing information that the dependencies of that dependency might be skipped
-     *
-     * @param aDependency         The dependency to create the node for
-     * @param theParent           The parent to put this on
-     * @param visitedDependencies The already visited dependencies
-     * @return A node without more dependencies resolved
-     */
-    private DependencyNode createSkippedNode(Dependency aDependency, DefaultDependencyNode theParent, Set<Dependency> visitedDependencies) {
-        // create node for the dependency itself, but don't resolve anything
-        DependencyNode dependencyNode = createNode(aDependency, theParent, visitedDependencies, 0);
-        if (getDependencies(toArtifact(aDependency)).isEmpty()) {
+    private DependencyNode createProjectNode() {
+        ProjectArtifact projectArtifact = new ProjectArtifact(project);
+        return createNode(null, projectArtifact);
+    }
+
+    private List<DependencyNode> resolveDependenciesInDependencyManagement(DependencyNode parent, Set<Dependency> alreadyVisitedDependencies, ResolutionOptions theResolutionOptions) {
+        if (theResolutionOptions.getMaxDepth() == 0) {
+            return new ArrayList<>();
+        }
+        int currentDependencyNumber = 1;
+        List<DependencyNode> resolvedDependencies = new ArrayList<>();
+        List<Dependency> dependenciesInDependencyManagement = project.getDependencyManagement().getDependencies();
+        for (Dependency currentDependency : dependenciesInDependencyManagement) {
+            log.info("Gathering dependency tree for " + currentDependency + " (" + currentDependencyNumber + "/" + dependenciesInDependencyManagement.size() + ")");
+            if (!isValidDirectDependency(currentDependency, theResolutionOptions)) {
+                continue;
+            }
+            List<Exclusion> currentExclusions = currentDependency.getExclusions();
+            boolean hasBeenAdded = alreadyVisitedDependencies.add(currentDependency);
+            boolean isDuplicate = theResolutionOptions.skipDuplicates() && !hasBeenAdded;
+            if (isDuplicate) {
+                resolvedDependencies.add(createSkippedNode(parent, currentDependency, currentExclusions));
+            } else {
+                resolvedDependencies.add(resolveTransitiveDependencies(parent, currentDependency, currentExclusions, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
+            }
+
+            currentDependencyNumber++;
+        }
+        return resolvedDependencies;
+    }
+
+    private List<DependencyNode> resolveTransitiveDependencies(DependencyNode parent, List<Dependency> dependencies, Set<Dependency> alreadyVisitedDependencies, ResolutionOptions theResolutionOptions) {
+        List<DependencyNode> resolvedDependencies = new ArrayList<>();
+        for (Dependency currentDependency : dependencies) {
+            if (!isValidTransitiveDependency(currentDependency, theResolutionOptions)) {
+                continue;
+            }
+            List<Exclusion> currentExclusions = currentDependency.getExclusions();
+            boolean hasBeenAdded = alreadyVisitedDependencies.add(currentDependency);
+            boolean isDuplicate = theResolutionOptions.skipDuplicates() && !hasBeenAdded;
+            if (isDuplicate) {
+                resolvedDependencies.add(createSkippedNode(parent, currentDependency, currentExclusions));
+            } else {
+                resolvedDependencies.add(resolveTransitiveDependencies(parent, currentDependency, currentExclusions, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
+            }
+        }
+        return resolvedDependencies;
+    }
+
+    private DependencyNode createSkippedNode(DependencyNode theParent, Dependency aDependency, List<Exclusion> someExclusions) {
+        DependencyNode dependencyNode = createNode(theParent, toArtifact(aDependency));
+        if (getNonTestDependencies(toArtifact(aDependency), someExclusions).count() == 0) {
             // this dependency does not have further dependencies
             return dependencyNode;
         }
+
         // if this dependency has further dependencies, we skip them
         DefaultArtifact skippedArtifact = new DefaultArtifact("skipped already printed dependencies", "", "-", "", "", "", null);
         DefaultDependencyNode skippedNode = new DefaultDependencyNode(dependencyNode, skippedArtifact, null, null, null);
@@ -115,40 +122,42 @@ public class FullDependenciesGraphBuilder {
         return dependencyNode;
     }
 
-    /**
-     * Creates a new dependency node for the provided dependency using the
-     * provided node as parent.
-     *
-     * @param anArtifact            The artifact to create the node for
-     * @param theParent             The parent to create the node for
-     * @param visitedDependencies The already visited dependencies
-     * @param theMaxResolutionDepth The maximum resolution depth to use
-     * @return A dependency node for the given parameters
-     */
-    public DependencyNode createNode(Artifact anArtifact, DependencyNode theParent, Set<Dependency> visitedDependencies, int theMaxResolutionDepth) {
-        return createNode(anArtifact, theParent, null, visitedDependencies, theMaxResolutionDepth);
+    private DependencyNode resolveTransitiveDependencies(DependencyNode parent, Dependency aDependency, List<Exclusion> someExclusions, Set<Dependency> alreadyVisitedDependencies, ResolutionOptions theResolutionOptions) {
+        Artifact artifact = toArtifact(aDependency);
+        if (theResolutionOptions.getMaxDepth() == 0) {
+            DefaultDependencyNode projectNode = new DefaultDependencyNode(parent, artifact, null, null, null);
+            projectNode.setChildren(Collections.unmodifiableList(new ArrayList<>()));
+            return projectNode;
+        }
+        List<Dependency> dependencies = getDependencies(aDependency, someExclusions);
+        DependencyNode dependencyNode = createNode(parent, artifact);
+        ((DefaultDependencyNode) dependencyNode).setChildren(resolveTransitiveDependencies(dependencyNode, dependencies, alreadyVisitedDependencies, theResolutionOptions));
+        return dependencyNode;
     }
 
-    /**
-     * Creates a new dependency node for the provided dependency using the
-     * provided node as parent.
-     *
-     * @param aDependency           The dependency to create the node for
-     * @param theParent             The parent to create the node for
-     * @param visitedDependencies The already visited dependencies
-     * @param theMaxResolutionDepth Specifies the max depth for resolution
-     * @return A dependency node for the given parameters
-     */
-    public DependencyNode createNode(Dependency aDependency, DependencyNode theParent, Set<Dependency> visitedDependencies, int theMaxResolutionDepth) {
-        return this.createNode(toArtifact(aDependency), theParent, visitedDependencies, theMaxResolutionDepth);
+    private List<Dependency> getDependencies(Dependency aDependency, List<Exclusion> someExclusions) {
+        return getDependencies(toArtifact(aDependency), someExclusions);
     }
 
-    /**
-     * Converts the provided dependency to an artifact.
-     *
-     * @param aDependency The dependency to resolve to an artifact
-     * @return The artifact
-     */
+    private boolean isValidDirectDependency(Dependency aDependency, ResolutionOptions theResolutionOptions) {
+        return scopeMatches(aDependency, theResolutionOptions);
+    }
+
+    private boolean scopeMatches(Dependency aDependency, ResolutionOptions theResolutionOptions) {
+        if (theResolutionOptions.getScopes().isEmpty()) {
+            return true;
+        }
+        return theResolutionOptions.getScopes().contains(Optional.ofNullable(aDependency.getScope()).orElse("compile"));
+    }
+
+    private boolean isValidTransitiveDependency(Dependency aDependency, ResolutionOptions theResolutionOptions) {
+        return !isTestDependency(aDependency) && scopeMatches(aDependency, theResolutionOptions);
+    }
+
+    private boolean isTestDependency(Dependency aDependency) {
+        return Optional.ofNullable(aDependency.getScope()).orElse("compile").equalsIgnoreCase("test");
+    }
+
     private Artifact toArtifact(Dependency aDependency) {
         Optional<String> groupId = Optional.ofNullable(aDependency.getGroupId());
         Optional<String> artifactId = Optional.ofNullable(aDependency.getArtifactId());
@@ -160,13 +169,7 @@ public class FullDependenciesGraphBuilder {
                 type.orElse(new Dependency().getType()), classifier.orElse(""), null);
     }
 
-    /**
-     * Retrieves the dependencies of the provided artifact.
-     *
-     * @param anArtifact Retrieves the depedencies of the given artifact
-     * @return The dependencies of the provided artifact
-     */
-    private List<Dependency> getDependencies(Artifact anArtifact) {
+    private List<Dependency> getDependencies(Artifact anArtifact, List<Exclusion> someExclusions) {
         try {
             org.eclipse.aether.artifact.Artifact artifact = convert(anArtifact);
             ArtifactDescriptorRequest request = new ArtifactDescriptorRequest(artifact, convert(project.getRemoteArtifactRepositories()), null);
@@ -174,7 +177,10 @@ public class FullDependenciesGraphBuilder {
 
             List<Dependency> dependencies = new ArrayList<>();
             for (org.eclipse.aether.graph.Dependency dependency : result.getDependencies()) {
-                dependencies.add(convert(dependency));
+                boolean excluded = isExcluded(someExclusions, dependency);
+                if (!excluded) {
+                    dependencies.add(convert(dependency));
+                }
             }
 
             return dependencies;
@@ -184,12 +190,15 @@ public class FullDependenciesGraphBuilder {
         return new ArrayList<>();
     }
 
-    /**
-     * Converts the provided aether dependency to regular maven dependency
-     *
-     * @param aetherDep The aether dependency to convert.
-     * @return The converted maven dependency.
-     */
+    private Stream<Dependency> getNonTestDependencies(Artifact anArtifact, List<Exclusion> someExclusions) {
+        return getDependencies(anArtifact, someExclusions).stream().filter(d -> !"test".equalsIgnoreCase(d.getScope()));
+    }
+
+    private boolean isExcluded(List<Exclusion> someExclusions, org.eclipse.aether.graph.Dependency dependency) {
+        return someExclusions.stream().anyMatch(exclusion -> exclusion.getGroupId().equalsIgnoreCase(dependency.getArtifact().getGroupId()) && exclusion.getArtifactId().equalsIgnoreCase(dependency.getArtifact().getArtifactId()));
+    }
+
+
     private Dependency convert(org.eclipse.aether.graph.Dependency aetherDep) {
         Dependency dependency = new Dependency();
         dependency.setGroupId(aetherDep.getArtifact().getGroupId());
@@ -264,4 +273,9 @@ public class FullDependenciesGraphBuilder {
         return session;
     }
 
+    DependencyNode createNode(DependencyNode parent, Artifact artifact) {
+        DefaultDependencyNode projectNode = new DefaultDependencyNode(parent, artifact, null, null, null);
+        projectNode.setChildren(Collections.unmodifiableList(new ArrayList<>()));
+        return projectNode;
+    }
 }
