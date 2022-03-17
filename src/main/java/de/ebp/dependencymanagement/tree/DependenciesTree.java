@@ -49,9 +49,7 @@ public class DependenciesTree {
     }
 
     public DependencyNode asDependencyNode(int maxDepth) {
-        // create root node, but do not resolve anything
         DependencyNode projectNode = createProjectNode();
-
         Set<Dependency> alreadyVisitedDependencies = new TreeSet<>(new DependencyComparator());
         List<DependencyNode> allDependencies = resolveDependenciesInDependencyManagement(projectNode, alreadyVisitedDependencies, maxDepth);
         ((DefaultDependencyNode) projectNode).setChildren(Collections.unmodifiableList(allDependencies));
@@ -60,61 +58,71 @@ public class DependenciesTree {
 
     private DependencyNode createProjectNode() {
         ProjectArtifact projectArtifact = new ProjectArtifact(project);
-        return createNode(null, projectArtifact, Collections.unmodifiableList(new ArrayList<>()));
+        return createNode(null, projectArtifact);
     }
 
-    private List<DependencyNode> resolveDependenciesInDependencyManagement(DependencyNode parent, Set<Dependency> alreadyVisitedDependencies, int remainingDepth) {
-        List<Dependency> dependencies = project.getDependencyManagement().getDependencies();
-        return resolveDependencies(parent, dependencies, true, remainingDepth);
-    }
-
-    private List<DependencyNode> resolveDependencies(DependencyNode parent, List<Dependency> dependencies, boolean doLog, int theRemainingDepth) {
-        if(theRemainingDepth == 0) {
+    private List<DependencyNode> resolveDependenciesInDependencyManagement(DependencyNode parent, Set<Dependency> alreadyVisitedDependencies, int theRemainingDepth) {
+        if (theRemainingDepth == 0) {
             return new ArrayList<>();
         }
         int currentDependencyNumber = 1;
         List<DependencyNode> resolvedDependencies = new ArrayList<>();
-        for (Dependency currentDependency : dependencies) {
-            if (doLog) {
-                log.info("Gathering dependency tree for " + currentDependency + " (" + currentDependencyNumber + "/" + dependencies.size() + ")");
+        List<Dependency> dependenciesInDependencyManagement = project.getDependencyManagement().getDependencies();
+        for (Dependency currentDependency : dependenciesInDependencyManagement) {
+            log.info("Gathering dependency tree for " + currentDependency + " (" + currentDependencyNumber + "/" + dependenciesInDependencyManagement.size() + ")");
+            alreadyVisitedDependencies.add(currentDependency);
+            List<Exclusion> currentExclusions = currentDependency.getExclusions();
+            if (isValidDirectDependency(currentDependency)) {
+                resolvedDependencies.add(resolveDependencies(parent, currentDependency, alreadyVisitedDependencies, theRemainingDepth - 1));
             }
-            if(isValidDependency(currentDependency)) {
-                resolvedDependencies.add(resolveDependencies(parent, currentDependency, theRemainingDepth - 1));
-            }
-//            List<Exclusion> currentExclusions = currentDependency.getExclusions();
-//            alreadyVisitedDependencies.add(currentDependency);
-//            childNodes.add(convertToDependencyNode(currentDependency, alreadyVisitedDependencies, maxDepth - 1));
 
             currentDependencyNumber++;
         }
         return resolvedDependencies;
     }
 
-    private DependencyNode resolveDependencies(DependencyNode parent, Dependency aDependency, int theRemainingDepth) {
+    private List<DependencyNode> resolveDependencies(DependencyNode parent, List<Dependency> dependencies, Set<Dependency> alreadyVisitedDependencies, int theRemainingDepth) {
+        if (theRemainingDepth == 0) {
+            return new ArrayList<>();
+        }
+        int currentDependencyNumber = 1;
+        List<DependencyNode> resolvedDependencies = new ArrayList<>();
+        for (Dependency currentDependency : dependencies) {
+            alreadyVisitedDependencies.add(currentDependency);
+            List<Exclusion> currentExclusions = currentDependency.getExclusions();
+            if (isValidTransitiveDependency(currentDependency)) {
+                resolvedDependencies.add(resolveDependencies(parent, currentDependency, alreadyVisitedDependencies, theRemainingDepth - 1));
+            }
+
+            currentDependencyNumber++;
+        }
+        return resolvedDependencies;
+    }
+
+    private DependencyNode resolveDependencies(DependencyNode parent, Dependency aDependency, Set<Dependency> alreadyVisitedDependencies, int theRemainingDepth) {
         Artifact artifact = toArtifact(aDependency);
-        if(theRemainingDepth == 0) {
+        if (theRemainingDepth == 0) {
             DefaultDependencyNode projectNode = new DefaultDependencyNode(parent, artifact, null, null, null);
             projectNode.setChildren(Collections.unmodifiableList(new ArrayList<>()));
             return projectNode;
         }
         List<Dependency> dependencies = getDependencies(aDependency);
-        List<DependencyNode> childNodes = resolveDependencies(parent, dependencies, false, theRemainingDepth);
-        return createNode(parent, artifact, childNodes);
+        DependencyNode dependencyNode = createNode(parent, artifact);
+        ((DefaultDependencyNode) dependencyNode).setChildren(resolveDependencies(dependencyNode, dependencies, alreadyVisitedDependencies, theRemainingDepth));
+        return dependencyNode;
     }
 
     private List<Dependency> getDependencies(Dependency aDependency) {
         return getDependencies(toArtifact(aDependency));
     }
 
-    private boolean isValidDependency(Dependency currentDependency) {
+    private boolean isValidDirectDependency(Dependency currentDependency) {
         return true;
     }
 
-/*    private DependencyNode createDependencyNode() {
-        DefaultDependencyNode artifactNode = new DefaultDependencyNode(theParent, anArtifact, null, theScope, null);
-        return artifactNode;
-    }*/
-
+    private boolean isValidTransitiveDependency(Dependency currentDependency) {
+        return !Optional.ofNullable(currentDependency.getScope()).orElse("compile").equalsIgnoreCase("test");
+    }
 
     private Artifact toArtifact(Dependency aDependency) {
         Optional<String> groupId = Optional.ofNullable(aDependency.getGroupId());
@@ -220,9 +228,9 @@ public class DependenciesTree {
         return session;
     }
 
-    DependencyNode createNode(DependencyNode parent, Artifact artifact, List<DependencyNode> childNodes) {
+    DependencyNode createNode(DependencyNode parent, Artifact artifact) {
         DefaultDependencyNode projectNode = new DefaultDependencyNode(parent, artifact, null, null, null);
-        projectNode.setChildren(childNodes);
+        projectNode.setChildren(Collections.unmodifiableList(new ArrayList<>()));
         return projectNode;
     }
 }
