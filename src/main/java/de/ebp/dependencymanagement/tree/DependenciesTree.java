@@ -33,7 +33,6 @@ import org.eclipse.aether.util.repository.DefaultMirrorSelector;
 import org.eclipse.aether.util.repository.DefaultProxySelector;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class DependenciesTree {
@@ -81,7 +80,7 @@ public class DependenciesTree {
             if (!theResolutionOptions.skipDuplicates() || hasBeenAdded) {
                 resolvedDependencies.add(resolveDependencies(parent, currentDependency, currentExclusions, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
             } else {
-                resolvedDependencies.add(createSkippedNode(parent, currentDependency, currentExclusions, alreadyVisitedDependencies));
+                resolvedDependencies.add(createSkippedNode(parent, currentDependency, currentExclusions));
             }
 
             currentDependencyNumber++;
@@ -103,13 +102,13 @@ public class DependenciesTree {
             if (!theResolutionOptions.skipDuplicates() || hasBeenAdded) {
                 resolvedDependencies.add(resolveDependencies(parent, currentDependency, currentExclusions, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
             } else {
-                resolvedDependencies.add(createSkippedNode(parent, currentDependency, currentExclusions, alreadyVisitedDependencies));
+                resolvedDependencies.add(createSkippedNode(parent, currentDependency, currentExclusions));
             }
         }
         return resolvedDependencies;
     }
 
-    private DependencyNode createSkippedNode(DependencyNode theParent, Dependency aDependency, List<Exclusion> someExclusions, Set<Dependency> visitedDependencies) {
+    private DependencyNode createSkippedNode(DependencyNode theParent, Dependency aDependency, List<Exclusion> someExclusions) {
         DependencyNode dependencyNode = createNode(theParent, toArtifact(aDependency));
         if (getNonTestDependencies(toArtifact(aDependency), someExclusions).count() == 0) {
             // this dependency does not have further dependencies
