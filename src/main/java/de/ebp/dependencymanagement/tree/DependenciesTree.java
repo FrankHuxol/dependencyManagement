@@ -72,15 +72,16 @@ public class DependenciesTree {
         List<Dependency> dependenciesInDependencyManagement = project.getDependencyManagement().getDependencies();
         for (Dependency currentDependency : dependenciesInDependencyManagement) {
             log.info("Gathering dependency tree for " + currentDependency + " (" + currentDependencyNumber + "/" + dependenciesInDependencyManagement.size() + ")");
-            boolean hasBeenAdded = alreadyVisitedDependencies.add(currentDependency);
-            List<Exclusion> currentExclusions = currentDependency.getExclusions();
             if (!isValidDirectDependency(currentDependency, theResolutionOptions)) {
                 continue;
             }
-            if (!theResolutionOptions.skipDuplicates() || hasBeenAdded) {
-                resolvedDependencies.add(resolveDependencies(parent, currentDependency, currentExclusions, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
-            } else {
+            List<Exclusion> currentExclusions = currentDependency.getExclusions();
+            boolean hasBeenAdded = alreadyVisitedDependencies.add(currentDependency);
+            boolean isDuplicate = theResolutionOptions.skipDuplicates() && !hasBeenAdded;
+            if (isDuplicate) {
                 resolvedDependencies.add(createSkippedNode(parent, currentDependency, currentExclusions));
+            } else {
+                resolvedDependencies.add(resolveDependencies(parent, currentDependency, currentExclusions, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
             }
 
             currentDependencyNumber++;
@@ -99,10 +100,11 @@ public class DependenciesTree {
             }
             List<Exclusion> currentExclusions = currentDependency.getExclusions();
             boolean hasBeenAdded = alreadyVisitedDependencies.add(currentDependency);
-            if (!theResolutionOptions.skipDuplicates() || hasBeenAdded) {
-                resolvedDependencies.add(resolveDependencies(parent, currentDependency, currentExclusions, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
-            } else {
+            boolean isDuplicate = theResolutionOptions.skipDuplicates() && !hasBeenAdded;
+            if (isDuplicate) {
                 resolvedDependencies.add(createSkippedNode(parent, currentDependency, currentExclusions));
+            } else {
+                resolvedDependencies.add(resolveDependencies(parent, currentDependency, currentExclusions, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
             }
         }
         return resolvedDependencies;
