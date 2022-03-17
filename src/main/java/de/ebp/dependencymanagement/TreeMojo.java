@@ -2,28 +2,19 @@ package de.ebp.dependencymanagement;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
-import de.ebp.dependencymanagement.dependency.DependencyComparator;
-import de.ebp.dependencymanagement.graph.FullDependenciesGraphBuilder;
-import org.apache.maven.model.Dependency;
+import de.ebp.dependencymanagement.tree.DependenciesTree;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.artifact.ProjectArtifact;
 import org.apache.maven.shared.dependency.graph.DependencyNode;
-import org.apache.maven.shared.dependency.graph.internal.DefaultDependencyNode;
 import org.apache.maven.shared.dependency.graph.traversal.SerializingDependencyNodeVisitor;
 
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
 
 @Mojo(name = "tree", requiresDependencyResolution = ResolutionScope.TEST)
 public class TreeMojo extends AbstractMojo {
@@ -55,31 +46,9 @@ public class TreeMojo extends AbstractMojo {
      * @return The full dependency graph
      */
     private DependencyNode createDependenciesGraph() {
-        int maxResolutionDepth = maxDepth;
-        ProjectArtifact projectArtifact = new ProjectArtifact(project);
-        FullDependenciesGraphBuilder graphBuilder = new FullDependenciesGraphBuilder(project, getLog(), scopes, skipDuplicates);
+        DependenciesTree tree = new DependenciesTree(project, getLog());
 
-        Set<Dependency> visitedDependencies = new TreeSet<>(new DependencyComparator());
-
-        // create root node, but do not resolve anything
-        DependencyNode projectNode = graphBuilder.createNode(projectArtifact, null, visitedDependencies, 0);
-
-        // now iterate over dependencymanagement section and add all
-        // dependencies from there
-        List<DependencyNode> childNodes = new ArrayList<>();
-        if (maxResolutionDepth != 0) {
-            int currentDependencyNumber = 1;
-            for (Dependency currentDependency : project.getDependencyManagement().getDependencies()) {
-                getLog().info("Gathering dependency tree for " + currentDependency + " (" + currentDependencyNumber + "/" + project.getDependencyManagement().getDependencies().size() + ")");
-                if (scopes.isEmpty() || scopes.contains(Optional.ofNullable(currentDependency.getScope()).orElse("compile"))) {
-                    visitedDependencies.add(currentDependency);
-                    childNodes.add(graphBuilder.createNode(currentDependency, projectNode, visitedDependencies, maxResolutionDepth - 1));
-                }
-                currentDependencyNumber++;
-            }
-        }
-        ((DefaultDependencyNode) projectNode).setChildren(Collections.unmodifiableList(childNodes));
-        return projectNode;
+        return tree.asDependencyNode(maxDepth);
     }
 
     /**
