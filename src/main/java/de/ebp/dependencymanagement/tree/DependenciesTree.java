@@ -1,6 +1,7 @@
 package de.ebp.dependencymanagement.tree;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import de.ebp.dependencymanagement.dependency.DependencyComparator;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -85,19 +86,37 @@ public class DependenciesTree {
         if (theResolutionOptions.getMaxDepth() == 0) {
             return new ArrayList<>();
         }
-        int currentDependencyNumber = 1;
         List<DependencyNode> resolvedDependencies = new ArrayList<>();
         for (Dependency currentDependency : dependencies) {
-            alreadyVisitedDependencies.add(currentDependency);
+            if (!isValidTransitiveDependency(currentDependency, theResolutionOptions)) {
+                continue;
+            }
             List<Exclusion> currentExclusions = currentDependency.getExclusions();
-            if (isValidTransitiveDependency(currentDependency, theResolutionOptions)) {
+            boolean hasBeenAdded = alreadyVisitedDependencies.add(currentDependency);
+            if (!theResolutionOptions.skipDuplicates() || hasBeenAdded) {
                 resolvedDependencies.add(resolveDependencies(parent, currentDependency, alreadyVisitedDependencies, theResolutionOptions.withReducedMaxDepth()));
+            } else {
+                resolvedDependencies.add(createSkippedNode(parent, currentDependency, alreadyVisitedDependencies));
             }
 
-            currentDependencyNumber++;
         }
         return resolvedDependencies;
     }
+
+    private DependencyNode createSkippedNode(DependencyNode theParent, Dependency aDependency, Set<Dependency> visitedDependencies) {
+        DependencyNode dependencyNode = createNode(theParent, toArtifact(aDependency));
+        if (getDependencies(toArtifact(aDependency)).isEmpty()) {
+            // this dependency does not have further dependencies
+            return dependencyNode;
+        }
+        // if this dependency has further dependencies, we skip them
+        DefaultArtifact skippedArtifact = new DefaultArtifact("skipped already printed dependencies", "", "-", "", "", "", null);
+        DefaultDependencyNode skippedNode = new DefaultDependencyNode(dependencyNode, skippedArtifact, null, null, null);
+        skippedNode.setChildren(new ArrayList<>());
+        ((DefaultDependencyNode) dependencyNode).setChildren(Lists.newArrayList(skippedNode));
+        return dependencyNode;
+    }
+
 
     private DependencyNode resolveDependencies(DependencyNode parent, Dependency aDependency, Set<Dependency> alreadyVisitedDependencies, ResolutionOptions theResolutionOptions) {
         Artifact artifact = toArtifact(aDependency);
